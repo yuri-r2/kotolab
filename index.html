@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/style.css?v=c2472d3c">
 </head>
 <body>
   <header class="topbar">
@@ -165,7 +165,6 @@
             </div>
           </div>
           <div class="step-chips" id="stepChips" hidden aria-label="Strings in this walkthrough"></div>
-          <div id="guideKoto" class="guide-koto"></div>
           <div class="guide-step" id="guideStep" hidden>
             <p class="step-progress" id="stepProgress"></p>
             <div class="step-main">
@@ -180,6 +179,10 @@
               <button id="stepCompare">Play with</button>
               <button id="stepMic" aria-pressed="false">Use microphone</button>
               <span class="mic-level" title="Microphone input level"><span id="micLevel"></span></span>
+            </div>
+            <div class="mic-alert" id="micAlert" role="alert" hidden>
+              <p id="micAlertText"></p>
+              <button id="micRetry">Try the microphone again</button>
             </div>
             <div class="tuner" aria-hidden="true">
               <div class="tuner-scale"><span>−50</span><span>flat</span><span>0</span><span>sharp</span><span>+50</span></div>
@@ -198,6 +201,7 @@
               <button id="guideAgain">Check all strings again</button>
             </div>
           </div>
+          <div id="guideKoto" class="guide-koto"></div>
         </section>
 
         <div class="tune-grid">
@@ -302,6 +306,27 @@ rq         quarter rest            q.  dotted       e3  triplet eighth
 
   <div class="toast" id="toast" role="status" aria-live="polite"></div>
 
-  <script type="module" src="js/app.js"></script>
+  <script type="importmap">
+{
+  "imports": {
+    "./js/app.js": "./js/app.js?v=41cd8bc0",
+    "./js/audio.js": "./js/audio.js?v=f063a384",
+    "./js/engine.js": "./js/engine.js?v=8b6b6ffe",
+    "./js/guide.js": "./js/guide.js?v=aedc4f95",
+    "./js/importers.js": "./js/importers.js?v=7052aaed",
+    "./js/notation.js": "./js/notation.js?v=fda80ddf",
+    "./js/player.js": "./js/player.js?v=bb5d2d25",
+    "./js/songs.js": "./js/songs.js?v=57d37609",
+    "./js/techniques.js": "./js/techniques.js?v=3523b293",
+    "./js/tuner.js": "./js/tuner.js?v=87b299f8",
+    "./js/tunings.js": "./js/tunings.js?v=69ace0e2",
+    "./js/views/koto.js": "./js/views/koto.js?v=ed68ccab",
+    "./js/views/svg.js": "./js/views/svg.js?v=217d234a",
+    "./js/views/tab.js": "./js/views/tab.js?v=69536bbb",
+    "./js/views/vertical.js": "./js/views/vertical.js?v=543b0d33"
+  }
+}
+  </script>
+  <script type="module" src="js/app.js?v=41cd8bc0"></script>
 </body>
 </html>

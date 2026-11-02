@@ -406,3 +406,6 @@ button:disabled { opacity: 0.5; cursor: default; }
 .mic-level span { display: block; height: 100%; width: 0; background: var(--ai); transition: width 0.05s linear; }
 .guide-finish.partial { border-color: var(--beni); background: #fbf1ef; }
 .guide-finish .guide-buttons { margin-left: auto; }
+.mic-alert { border: 1px solid var(--beni); border-left-width: 5px; background: #fbf1ef; border-radius: var(--r-sm); padding: 10px 12px; margin: 0 0 12px; max-width: 72ch; }
+.mic-alert p { margin: 0 0 8px; }
+.mic-alert button { padding: 6px 12px; border-radius: var(--r-sm); border: 1px solid var(--beni); background: var(--card); color: var(--beni); font-weight: 700; }

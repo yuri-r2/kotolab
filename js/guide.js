@@ -96,6 +96,7 @@ export class TuningGuide {
     els.playCompare.addEventListener('click', () => this.playCompare());
     els.mic.addEventListener('click', () => this.toggleMic());
     els.again.addEventListener('click', () => this.begin('check'));
+    els.micRetry.addEventListener('click', () => this.startMic());
     els.fromTuning.addEventListener('change', () => this.preview());
     els.fromBase.addEventListener('change', () => this.preview());
   }
@@ -164,6 +165,7 @@ export class TuningGuide {
     this.els.finish.hidden = true;
     this.renderChips();
     this.go(0);
+    this.els.chips.scrollIntoView({ block: 'nearest', behavior: matchMedia('(prefers-reduced-motion: reduce)').matches ? 'auto' : 'smooth' });
     await this.startMic();
   }
 
@@ -295,6 +297,7 @@ export class TuningGuide {
     try {
       await this.tuner.start((f, level) => this.onPitch(f, level));
       this.micFailed = false;
+      this.els.micAlert.hidden = true;
       this.els.mic.textContent = 'Microphone on';
       this.els.mic.setAttribute('aria-pressed', 'true');
       const step = this.steps[this.index];
@@ -305,8 +308,9 @@ export class TuningGuide {
       this.micFailed = true;
       this.els.mic.textContent = 'Use microphone';
       this.els.mic.setAttribute('aria-pressed', 'false');
-      const reason = err.name === 'NotAllowedError' ? 'permission was denied' : err.message;
-      this.els.readout.textContent = `The microphone is not available (${reason}). Allow microphone access for this site and press “Use microphone”, or tune by ear.`;
+      this.els.micAlert.hidden = false;
+      this.els.micAlertText.textContent = micErrorMessage(err);
+      this.els.readout.textContent = 'Without the microphone, tune by ear against “Play” and press “Tuned by ear”.';
       if (this.index >= 0) this.updateNextButton();
       return false;
     }
@@ -384,6 +388,20 @@ export class TuningGuide {
     const at = this.index;
     this.advanceTimer = setTimeout(() => { if (this.index === at) this.go(at + 1); }, 1100);
   }
+}
+
+function micErrorMessage(err) {
+  const name = err?.name || '';
+  if (name === 'NotAllowedError' || name === 'SecurityError') {
+    return 'Microphone access is blocked, so KotoLab can’t hear your koto. Click the lock or site-settings icon next to the address bar, allow the microphone for this site, then press “Try the microphone again”. Some in-app browsers never allow the microphone: if nothing changes, open this page in Chrome, Safari, Edge or Firefox.';
+  }
+  if (name === 'NotFoundError' || name === 'OverconstrainedError') {
+    return 'No microphone was found. Connect one (or enable your computer’s built-in microphone), then press “Try the microphone again”.';
+  }
+  if (name === 'NotReadableError') {
+    return 'The microphone is in use by another app. Close that app, then press “Try the microphone again”.';
+  }
+  return `The microphone couldn’t start (${err?.message || 'unknown error'}). Press “Try the microphone again”, or tune by ear.`;
 }
 
 /** Compare in the nearest octave so a strong harmonic doesn't read as far off. */

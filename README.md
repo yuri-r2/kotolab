@@ -51,6 +51,7 @@ It's a static site with no build step:
 ```sh
 python3 -m http.server 8080   # then open http://localhost:8080
 npm test                      # engine, parser and importer tests (Node 18+)
+npm run stamp                 # after editing JS/CSS: refresh cache-busting hashes in index.html
 ```
 
 ## Project layout
