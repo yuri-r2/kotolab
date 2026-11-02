@@ -70,6 +70,34 @@ export function describeMove(step) {
     : `Slide the bridge of ${name} away from you, toward the far end, ${amount}: from ${pitchName(step.from)} down to ${pitchName(step.to)}.`;
 }
 
+/**
+ * Setting bridges on a koto whose bridges are off. With the bridge removed,
+ * a string vibrates along its whole length between the two fixed bridges
+ * (龍角 ryūkaku at the player's end, 雲角 unkaku at the far end). For an
+ * ideal string at fixed tension, frequency is inversely proportional to the
+ * vibrating length, so if the bare string sounds f0 over length L, the bridge
+ * for a target frequency f goes at L·f0/f from the player's fixed bridge.
+ */
+export function bridgeDistance(f0, targetMidi, length, a4 = 440) {
+  return (length * f0) / midiToFreqLocal(targetMidi, a4);
+}
+
+/** Without a measurement: assume the lowest target string's bridge sits at 90% of the length. */
+export function estimateBareFreq(targetOpen, a4 = 440) {
+  return midiToFreqLocal(Math.min(...targetOpen), a4) * 0.9;
+}
+
+/** 'ok', 'tight' (bridge would have to go past the far end) or 'slack' (very close to the player's end). */
+export function placementStatus(distance, length) {
+  if (distance > length * 0.97) return 'tight';
+  if (distance < length * 0.18) return 'slack';
+  return 'ok';
+}
+
+function midiToFreqLocal(midi, a4) {
+  return a4 * Math.pow(2, (midi - 69) / 12);
+}
+
 export const TOLERANCE_CENTS = 5;
 const HOLD_READINGS = 8; // ~0.4 s of steady, in-tune readings
 const MUTE_AFTER_STEP = 700; // ms: ignore the previous string still ringing
@@ -99,6 +127,8 @@ export class TuningGuide {
     els.micRetry.addEventListener('click', () => this.startMic());
     els.fromTuning.addEventListener('change', () => this.preview());
     els.fromBase.addEventListener('change', () => this.preview());
+    els.length.addEventListener('change', () => { this.stringLength = clampLength(Number(els.length.value)); els.length.value = this.stringLength; });
+    this.stringLength = clampLength(Number(els.length.value) || 170);
   }
 
   /** target: { open, label, base }; current: saved koto tuning or null */
@@ -111,6 +141,7 @@ export class TuningGuide {
     if (current) add('saved', `As I last tuned it: ${current.label}`);
     for (const t of this.presets) add(t.id, t.user ? `${t.name} (my tuning)` : `${t.name} ${t.jp}`);
     add('scratch', 'Not tuned yet (new strings or unsure)');
+    add('nobridges', 'Bridges are off (put away after playing)');
     sel.value = current ? 'saved' : 'hira';
     if (!this.els.fromBase.options.length) {
       for (const b of this.bases) { const o = document.createElement('option'); o.value = b.offset; o.textContent = b.name; this.els.fromBase.appendChild(o); }
@@ -124,8 +155,8 @@ export class TuningGuide {
   fromOpen() {
     const v = this.els.fromTuning.value;
     const t = this.presets.find((p) => p.id === v);
-    this.els.fromBase.disabled = v === 'saved' || v === 'scratch' || !!t?.user;
-    if (v === 'scratch') return null;
+    this.els.fromBase.disabled = v === 'saved' || v === 'scratch' || v === 'nobridges' || !!t?.user;
+    if (v === 'scratch' || v === 'nobridges') return null;
     if (v === 'saved') return this.current.open;
     return t.strings.map((p) => p + (t.user ? t.base : Number(this.els.fromBase.value)));
   }
@@ -137,6 +168,15 @@ export class TuningGuide {
     this.koto.setGhost(from);
     this.koto.focus(null);
     const n = steps.length;
+    const noBridges = this.els.fromTuning.value === 'nobridges';
+    this.els.lengthWrap.hidden = !noBridges;
+    this.koto.setBridgesVisible(noBridges ? new Set() : null);
+    if (noBridges) {
+      this.els.start.textContent = 'Set up the bridges and tune all 13 strings';
+      this.els.start.disabled = false;
+      this.els.intro.textContent = 'For each string, pluck it without its bridge so the microphone can measure the bare string. KotoLab then tells you where to stand the bridge, and listens while you fine-tune it.';
+      return;
+    }
     this.els.start.textContent = n ? (from ? `Walk me through it (${n} string${n > 1 ? 's' : ''})` : 'Tune all 13 strings') : 'Nothing to move';
     this.els.start.disabled = n === 0;
     this.els.intro.textContent = n === 0
@@ -156,9 +196,11 @@ export class TuningGuide {
   }
 
   async begin(mode) {
+    if (mode === 'tune' && this.els.fromTuning.value === 'nobridges') mode = 'bridges';
     this.mode = mode;
     this.steps = (mode === 'check' ? planCheckSteps(this.target.open) : planTuningSteps(this.fromOpen(), this.target.open))
-      .map((s) => ({ ...s, status: 'pending', cents: null }));
+      .map((s) => ({ ...s, status: 'pending', cents: null, phase: mode === 'bridges' ? 'measure' : 'tune', f0: null, distance: null }));
+    this.bareFreqs = [];
     if (!this.steps.length) return;
     if (mode === 'check') { this.koto.setTuning(this.target.open, { changed: [] }); }
     this.els.startBox.hidden = true;
@@ -196,9 +238,12 @@ export class TuningGuide {
     const e = this.els;
     e.step.hidden = false;
     e.finish.hidden = true;
-    e.progress.textContent = `${this.mode === 'check' ? 'Checking' : 'Tuning'} string ${i + 1} of ${this.steps.length}`;
+    e.progress.textContent = `${this.mode === 'check' ? 'Checking' : this.mode === 'bridges' ? 'Setting up' : 'Tuning'} string ${i + 1} of ${this.steps.length}`;
     e.kanji.textContent = STRING_NAMES[step.string - 1];
     e.what.textContent = step.check ? describeCheck(step) : describeMove(step);
+    e.place.hidden = true;
+    e.playTarget.hidden = false;
+    e.meter.hidden = false;
     let hint = describeRelation(step.partner);
     if (step.string === 1 && step.from == null) hint = 'String 一 is the reference for every other string, so take your time with it.';
     if (step.check) hint = 'If the microphone says it is off, slide the bridge as it suggests.';
@@ -214,8 +259,91 @@ export class TuningGuide {
     this.setNeedle(step.status === 'verified' ? step.cents : null);
     this.renderChips();
     this.koto.focus(step.string);
+    if (this.mode === 'bridges') {
+      this.koto.setGhost(null);
+      this.koto.setBridgesVisible(new Set(this.steps.filter((s, k) => k < i || s.phase === 'tune').map((s) => s.string)));
+      this.showPhase(step);
+      return;
+    }
     if (step.check) this.koto.setGhost(null);
     else this.koto.setGhost(step.from == null ? null : this.steps.slice(i).reduce((open, s) => { open[s.string - 1] = s.from; return open; }, this.target.open.slice()), step.string);
+  }
+
+  showPhase(step) {
+    const e = this.els;
+    const name = `${STRING_NAMES[step.string - 1]} (${STRING_READINGS[step.string - 1]})`;
+    if (step.phase === 'measure') {
+      e.what.textContent = `Take the bridge out from under ${name} if one is there. Pluck the bare string near your end and let it ring.`;
+      e.hint.textContent = 'The microphone measures the bare string so KotoLab can work out where the bridge goes. No microphone? Press “Skip measuring” for an estimate.';
+      e.readout.textContent = this.tuner.running ? `Listening for the bare ${STRING_NAMES[step.string - 1]} string…` : 'Turn on the microphone to measure the bare string, or skip for an estimate.';
+      e.playCompare.hidden = true;
+      e.playTarget.hidden = true;
+      e.meter.hidden = true;
+      this.setNeedle(null);
+      this.updateNextButton();
+      return;
+    }
+    e.playTarget.hidden = false;
+    e.meter.hidden = false;
+    const cm = Math.round(step.distance);
+    const L = this.stringLength;
+    e.what.textContent = `Stand the bridge under ${name} about ${cm} cm from the fixed bridge at your end (龍角 ryūkaku), then pluck and slide it until it is in tune at ${pitchName(step.to)}.`;
+    const notes = [];
+    if (step.estimated) notes.push('This position is an estimate, so expect to slide the bridge a little further.');
+    if (step.octaveFixed) notes.push('The microphone caught an overtone of the bare string; KotoLab corrected for it.');
+    const status = placementStatus(step.distance, L);
+    if (status === 'tight') notes.push('This string is too tight for this note: even without a bridge it sounds higher. Its tension needs lowering before it can be tuned this low (a koto shop can re-tension strings).');
+    if (status === 'slack') notes.push('The bridge has to sit very close to your end, so this string is quite slack for this note. It will sound weak; the string may need re-tensioning.');
+    if (step.tension) notes.push(step.tension);
+    const rel = describeRelation(step.partner);
+    e.hint.textContent = [...notes, rel].filter(Boolean).join(' ');
+    e.place.hidden = false;
+    const frac = Math.max(0, Math.min(1, step.distance / L));
+    e.placeMarker.style.right = `${frac * 100}%`;
+    e.placeLabel.textContent = `${cm} cm of ${Math.round(L)} cm`;
+    e.playCompare.hidden = !step.partner;
+    e.readout.textContent = step.status === 'verified' ? `Verified: in tune (${fmtCents(step.cents)}).` : this.tuner.running ? `Listening… pluck ${STRING_NAMES[step.string - 1]}.` : this.micMessage();
+    this.updateNextButton();
+  }
+
+  onBarePitch(step, freq) {
+    const last = this.inTune[this.inTune.length - 1];
+    if (last && Math.abs(1200 * Math.log2(freq / last)) > 20) this.inTune = [];
+    this.inTune.push(freq);
+    this.els.readout.textContent = `Measuring the bare string… ${pitchName(Math.round(freqToMidi(freq, this.audio.a4)))}`;
+    if (this.inTune.length >= HOLD_READINGS) {
+      const sorted = this.inTune.slice().sort((a, b) => a - b);
+      this.setBare(step, sorted[Math.floor(sorted.length / 2)]);
+    }
+  }
+
+  /** Record the bare-string pitch (or estimate it) and move on to placing and tuning. */
+  setBare(step, freq) {
+    const a4 = this.audio.a4;
+    const L = this.stringLength;
+    step.estimated = freq == null;
+    step.octaveFixed = false;
+    let f0 = freq ?? estimateBareFreq(this.target.open, a4);
+    let d = bridgeDistance(f0, step.to, L, a4);
+    if (!step.estimated && d > L * 0.97 && d / 2 >= L * 0.18) { f0 /= 2; d /= 2; step.octaveFixed = true; }
+    step.f0 = f0;
+    step.distance = d;
+    step.tension = '';
+    if (!step.estimated) {
+      const others = this.bareFreqs.filter((x) => x.string !== step.string).map((x) => x.f0);
+      if (others.length >= 2) {
+        const median = others.slice().sort((a, b) => a - b)[Math.floor(others.length / 2)];
+        const off = 1200 * Math.log2(f0 / median);
+        if (Math.abs(off) > 150) step.tension = `The bare string sounds ${Math.round(Math.abs(off))} cents ${off < 0 ? 'lower' : 'higher'} than the others, so it is noticeably ${off < 0 ? 'slacker' : 'tighter'}. That is fine for tuning, but if it keeps drifting the string may need re-tensioning.`;
+      }
+      this.bareFreqs = this.bareFreqs.filter((x) => x.string !== step.string).concat({ string: step.string, f0 });
+    }
+    step.phase = 'tune';
+    this.inTune = [];
+    // let the bare string die away before listening for the bridged note
+    this.ignoreUntil = performance.now() + 1500;
+    this.koto.setBridgesVisible(new Set(this.steps.filter((s) => s.phase === 'tune').map((s) => s.string)));
+    this.showPhase(step);
   }
 
   micMessage() {
@@ -228,6 +356,11 @@ export class TuningGuide {
     const step = this.steps[this.index];
     const last = this.index === this.steps.length - 1;
     const e = this.els;
+    if (this.mode === 'bridges' && step.phase === 'measure') {
+      e.next.textContent = 'Skip measuring (use an estimate)';
+      e.next.classList.remove('primary');
+      return;
+    }
     if (step.status === 'verified') e.next.textContent = last ? 'Finish' : 'Next string';
     else if (this.micFailed || !this.tuner.running) e.next.textContent = last ? 'Tuned by ear, finish' : 'Tuned by ear, next';
     else e.next.textContent = last ? 'Skip and finish' : 'Skip this string';
@@ -236,6 +369,7 @@ export class TuningGuide {
 
   next() {
     const step = this.steps[this.index];
+    if (step && this.mode === 'bridges' && step.phase === 'measure') { this.setBare(step, null); return; }
     if (step && step.status !== 'verified') step.status = this.tuner.running ? 'skipped' : 'ear';
     this.go(this.index + 1);
   }
@@ -301,7 +435,11 @@ export class TuningGuide {
       this.els.mic.textContent = 'Microphone on';
       this.els.mic.setAttribute('aria-pressed', 'true');
       const step = this.steps[this.index];
-      if (step && step.status !== 'verified') this.els.readout.textContent = `Listening… pluck ${STRING_NAMES[step.string - 1]}.`;
+      if (step && step.status !== 'verified') {
+        this.els.readout.textContent = this.mode === 'bridges' && step.phase === 'measure'
+          ? `Listening for the bare ${STRING_NAMES[step.string - 1]} string…`
+          : `Listening… pluck ${STRING_NAMES[step.string - 1]}.`;
+      }
       if (this.index >= 0) this.updateNextButton();
       return true;
     } catch (err) {
@@ -349,6 +487,7 @@ export class TuningGuide {
     if (!step || this.els.step.hidden || step.status === 'verified') return;
     if (performance.now() < this.ignoreUntil) return;
     if (!freq) { this.inTune = []; return; }
+    if (this.mode === 'bridges' && step.phase === 'measure') { this.onBarePitch(step, freq); return; }
     const a4 = this.audio.a4;
     const cents = foldOctave(centsOff(freq, step.to, a4));
     const r = Math.round(cents);
@@ -414,4 +553,8 @@ function foldOctave(cents) {
 function fmtCents(c) {
   const r = Math.round(c);
   return `${r > 0 ? '+' : r < 0 ? '−' : '±'}${Math.abs(r)} cents`;
+}
+
+function clampLength(cm) {
+  return Number.isFinite(cm) ? Math.max(100, Math.min(200, Math.round(cm))) : 170;
 }

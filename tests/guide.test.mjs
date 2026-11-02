@@ -48,3 +48,19 @@ test('check mode visits all 13 strings without moving bridges', async () => {
   assert.equal(steps.length, 13);
   assert.ok(steps.every((s) => s.from === s.to && s.check));
 });
+
+test('bridge placement from the bare-string pitch', async () => {
+  const { bridgeDistance, estimateBareFreq, placementStatus } = await import('../js/guide.js');
+  // bare string at A3 (220 Hz) over 170 cm; target A4 → bridge at half the length
+  assert.ok(Math.abs(bridgeDistance(220, 69, 170) - 85) < 0.01);
+  // an octave higher target → a quarter of the length
+  assert.ok(Math.abs(bridgeDistance(220, 81, 170) - 42.5) < 0.01);
+  assert.equal(placementStatus(85, 170), 'ok');
+  assert.equal(placementStatus(168, 170), 'tight');
+  assert.equal(placementStatus(20, 170), 'slack');
+  // estimate puts the lowest string (二, G3) at 90% of the length
+  const hira = getTuning('hira').strings;
+  const f0 = estimateBareFreq(hira);
+  assert.ok(Math.abs(bridgeDistance(f0, 55, 170) - 153) < 0.01);
+  assert.equal(placementStatus(bridgeDistance(f0, 81, 170), 170), 'ok');
+});

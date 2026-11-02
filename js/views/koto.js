@@ -108,6 +108,15 @@ export class KotoView {
     });
   }
 
+  /** Show only some bridges (Set of string numbers); null shows all. Used while setting bridges up. */
+  setBridgesVisible(strings) {
+    this.strings.forEach((s, i) => {
+      const on = !strings || strings.has(i + 1);
+      s.bridge.style.opacity = on ? '' : '0';
+      s.bridge.style.pointerEvents = on ? '' : 'none';
+    });
+  }
+
   /** Emphasise one string (1–13) and dim the rest; null clears. */
   focus(string) {
     this.strings.forEach((s, i) => {

@@ -426,3 +426,15 @@ button:disabled { opacity: 0.5; cursor: default; }
   .ct-koto svg { min-width: 640px; }
   .ct-table td.muted { display: none; }
 }
+
+/* bridge placement (bridges off) */
+.place { margin: 10px 0 4px; max-width: 520px; }
+.place-track { position: relative; height: 34px; border-radius: 4px; background: linear-gradient(180deg, #d9b98c, #b88c58); border: 1px solid #8e6a3f; }
+.place-track::before { content: ''; position: absolute; left: 8px; right: 8px; top: 50%; height: 2px; background: var(--silk); }
+.place-end { position: absolute; bottom: -18px; font-size: 11px; color: var(--ink-soft); }
+.place-end.far { left: 0; }
+.place-end.near { right: 0; }
+.place-marker { position: absolute; top: 4px; bottom: 4px; width: 0; }
+.place-marker::before { content: ''; position: absolute; left: -8px; top: 3px; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 20px solid #fff7d6; filter: drop-shadow(0 0 1px #6a4b28); }
+.place-marker::after { content: ''; position: absolute; left: -1px; top: -4px; bottom: -4px; width: 2px; background: var(--beni); }
+.place-label { margin: 22px 0 0; font-weight: 700; font-size: 14px; }
