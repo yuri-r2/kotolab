@@ -1,4 +1,4 @@
-import { TUNINGS, BASES, STRING_NAMES, STRING_READINGS, getTuning, hiraPitches, pitchName, checkTuningRealism } from './tunings.js';
+import { TUNINGS, BASES, STRING_NAMES, STRING_READINGS, getTuning, hiraPitches, pitchName, checkTuningRealism, makeUserTuning, registerUserTunings, tuningOpen, bestBase } from './tunings.js';
 import { TECHNIQUES, FINGERS, LESSONS, pressTechnique } from './techniques.js';
 import { parseScore, normalizeEvents, toMeasures, barBeats, eventsToText, barWarnings, ScoreError } from './notation.js';
 import { resolvePitches, fitArrangement, fitBest, recommendTunings, optimizeTuning } from './engine.js';
@@ -15,6 +15,7 @@ const $ = (id) => document.getElementById(id);
 const STORE_KEY = 'kotolab.songs.v1';
 const PREFS_KEY = 'kotolab.prefs.v1';
 const KOTO_KEY = 'kotolab.myKoto.v1';
+const TUNING_KEY = 'kotolab.tunings.v1';
 const EPS = 1e-6;
 
 const state = {
@@ -83,6 +84,8 @@ function saveJSON(key, value) {
 const prefs = { rtl: false, a4: 440, ...loadJSON(PREFS_KEY, {}) };
 // how the player's own koto is tuned right now: { open: number[13], label, base }
 let myKoto = loadJSON(KOTO_KEY, null);
+let userTunings = loadJSON(TUNING_KEY, []).filter((t) => Array.isArray(t.strings) && t.strings.length === 13);
+registerUserTunings(userTunings);
 const allSongs = () => [...SONGS, ...userSongs];
 
 // ---------------------------------------------------------------- library
@@ -150,6 +153,7 @@ function loadSong(song, { keepSettings = false } = {}) {
       state.customFrom = 'the imported score';
     } else if (song.tuning && song.tuning !== 'auto') {
       state.tuningId = song.tuning;
+      if (getTuning(song.tuning)?.user) state.base = getTuning(song.tuning).base;
     } else {
       const rec = recommendTunings(evs, TUNINGS, { base: state.base, tempo: song.tempo, maxPress: state.maxPress, barBeats: barBeats(song.timeSig) });
       state.tuningId = rec[0].tuning.id;
@@ -173,13 +177,13 @@ function loadSong(song, { keepSettings = false } = {}) {
 function currentOpen() {
   if (state.tuningId === 'custom' && state.customOpen) return state.customOpen.slice();
   const t = getTuning(state.tuningId) || TUNINGS[0];
-  return t.strings.map((p) => p + state.base);
+  return tuningOpen(t, state.base);
 }
 
 function isOriginalSetting() {
   const s = state.song;
   return s.mode === 'strings' && state.keepStrings && (
-    (state.tuningId === s.tuning && !s.sourceOpen) ||
+    (state.tuningId === s.tuning && (!s.sourceOpen || getTuning(s.tuning)?.user)) ||
     (state.tuningId === 'custom' && s.sourceOpen && state.customOpen && state.customOpen.every((p, i) => p - state.base === s.sourceOpen[i] - (s.base || 0)))
   );
 }
@@ -224,12 +228,18 @@ function arrange() {
 function renderTuningSelect() {
   const sel = $('tuningSelect');
   sel.innerHTML = '';
+  const presetGroup = document.createElement('optgroup');
+  presetGroup.label = 'Traditional tunings';
+  const userGroup = document.createElement('optgroup');
+  userGroup.label = 'My tunings';
   for (const t of TUNINGS) {
     const o = document.createElement('option');
     o.value = t.id;
-    o.textContent = `${t.name} ${t.jp}`;
-    sel.appendChild(o);
+    o.textContent = t.user ? t.name : `${t.name} ${t.jp}`;
+    (t.user ? userGroup : presetGroup).appendChild(o);
   }
+  sel.appendChild(presetGroup);
+  if (userGroup.children.length) sel.appendChild(userGroup);
   if (state.customOpen) {
     const o = document.createElement('option');
     o.value = 'custom';
@@ -247,13 +257,18 @@ function renderTuningSelect() {
     }
   }
   bs.value = String(state.base);
-  bs.disabled = state.tuningId === 'custom';
+  const isUser = !!getTuning(state.tuningId)?.user;
+  bs.disabled = state.tuningId === 'custom' || isUser;
+  bs.title = isUser ? 'Set by your custom tuning' : '';
+  $('editTuning').hidden = !isUser;
+  $('saveFitted').hidden = state.tuningId !== 'custom';
 }
 
 function tuningLabel(open = state.arr.open) {
   for (const t of TUNINGS) {
     for (const b of BASES) {
-      if (t.strings.every((p, i) => p + b.offset === open[i])) return `${t.name} ${t.jp}, 一 on ${b.name.split(' (')[0]}`;
+      if (t.user && b.offset !== t.base) continue;
+      if (t.strings.every((p, i) => p + b.offset === open[i])) return t.user ? `${t.name} (my tuning)` : `${t.name} ${t.jp}, 一 on ${b.name.split(' (')[0]}`;
     }
   }
   return `custom bridges (${open.map((p) => pitchName(p, { octave: false })).join(' ')})`;
@@ -435,11 +450,7 @@ function renderAdvisor() {
     b.textContent = r.tuning.id === state.tuningId ? 'In use' : 'Use';
     b.disabled = r.tuning.id === state.tuningId;
     b.addEventListener('click', () => {
-      state.tuningId = r.tuning.id;
-      state.autoTranspose = true;
-      renderTuningSelect();
-      arrange();
-      renderAdvisor();
+      selectTuning(r.tuning.id);
     });
     li.appendChild(b);
     ol.appendChild(li);
@@ -656,7 +667,8 @@ function renderLearn() {
   html += '<h3>Tunings at a glance</h3><p>Open pitches with string 一 on D (壱越). Red pitches are bridges moved from hira-jōshi.</p><div style="overflow-x:auto"><table class="tuning-table"><thead><tr><th></th>' + STRING_NAMES.map((n) => `<th>${n}</th>`).join('') + '</tr></thead><tbody>';
   const hira = hiraPitches(0);
   for (const t of TUNINGS) {
-    html += `<tr><td><strong>${t.name}</strong> ${t.jp}<br><button class="hear" data-tuning="${t.id}">Hear it</button></td>` + t.strings.map((p, i) => `<td class="${p !== hira[i] ? 'chg' : ''}">${pitchName(p, { octave: false })}</td>`).join('') + '</tr>';
+    const names = tuningOpen(t, 0);
+    html += `<tr><td><strong>${escapeHtml(t.name)}</strong> ${t.user ? '<em>(my tuning)</em>' : t.jp}<br><button class="hear" data-tuning="${t.id}">Hear it</button></td>` + t.strings.map((p, i) => `<td class="${p !== hira[i] ? 'chg' : ''}">${pitchName(names[i], { octave: false })}</td>`).join('') + '</tr>';
   }
   html += '</tbody></table></div>';
   html += '<h3>Right-hand fingers</h3><div class="glossary">';
@@ -694,9 +706,121 @@ function demoTechnique(key) {
 function demoTuning(id) {
   const t = getTuning(id);
   const ctx = audio.ensure();
-  const open = t.strings.map((p) => p + state.base);
+  const open = tuningOpen(t, state.base);
   audio.prepare(open).then(() => {
     open.forEach((p, i) => audio.pluck({ midi: p, when: ctx.currentTime + 0.05 + i * 0.22, dur: 0.6, string: i + 1 }));
+  });
+}
+
+// ---------------------------------------------------------------- custom tunings
+function selectTuning(id) {
+  state.tuningId = id;
+  const t = getTuning(id);
+  if (t?.user) state.base = t.base;
+  state.autoTranspose = true;
+  renderTuningSelect();
+  arrange();
+  renderAdvisor();
+}
+
+const PITCH_MIN = 40; // E2
+const PITCH_MAX = 86; // D6
+const ct = { editing: null, pitches: [] };
+let ctKoto = null;
+
+function pitchOptionLabel(p) {
+  const flat = pitchName(p);
+  const sharp = pitchName(p, { flats: false });
+  return flat === sharp ? flat : `${flat} / ${sharp}`;
+}
+
+function openTuningEditor(existing, { pitches, name } = {}) {
+  ct.editing = existing || null;
+  ct.pitches = (existing ? tuningOpen(existing) : pitches || state.arr.open).slice();
+  $('ctName').value = existing ? existing.name : name || '';
+  $('tuningDialogTitle').textContent = existing ? `Edit “${existing.name}”` : 'New custom tuning';
+  $('ctDelete').hidden = !existing;
+  const start = $('ctStart');
+  start.innerHTML = '<option value="">Keep the notes below</option><option value="__current">This song’s current tuning</option>' +
+    TUNINGS.map((t) => `<option value="${t.id}">${escapeHtml(t.user ? t.name + ' (my tuning)' : `${t.name} ${t.jp}`)}</option>`).join('');
+  start.value = '';
+  if (!ctKoto) ctKoto = new KotoView($('ctKoto'), { onPluck: (string, press) => hearPitch(ct.pitches[string - 1] + press, string) });
+  renderTuningRows();
+  $('tuningDialog').showModal();
+}
+
+function hearPitch(midi, string = 99, when = 0.02) {
+  audio.prepare([midi]).then(() => audio.pluck({ midi, when: audio.now() + when, dur: 1.2, string }));
+}
+
+function renderTuningRows() {
+  const base = bestBase(ct.pitches);
+  const hira = hiraPitches(base);
+  const tbody = $('ctRows');
+  tbody.innerHTML = '';
+  ct.pitches.forEach((p, i) => {
+    const tr = document.createElement('tr');
+    const d = p - hira[i];
+    let opts = '';
+    for (let m = PITCH_MIN; m <= PITCH_MAX; m++) opts += `<option value="${m}"${m === p ? ' selected' : ''}>${pitchOptionLabel(m)}</option>`;
+    tr.innerHTML = `<td class="kanji">${STRING_NAMES[i]}</td><td class="muted">${STRING_READINGS[i]}</td>
+      <td><select aria-label="Note for string ${STRING_NAMES[i]}">${opts}</select></td>
+      <td class="nudge"><button aria-label="Lower string ${STRING_NAMES[i]} a half step">−</button><button aria-label="Raise string ${STRING_NAMES[i]} a half step">+</button></td>
+      <td class="delta">${d ? (d > 0 ? '+' : '') + d : ''}</td>
+      <td><button class="hear" aria-label="Hear string ${STRING_NAMES[i]}">Hear</button></td>`;
+    const [sel] = tr.getElementsByTagName('select');
+    const [down, up, hear] = tr.querySelectorAll('button');
+    const set = (v) => { ct.pitches[i] = Math.max(PITCH_MIN, Math.min(PITCH_MAX, v)); renderTuningRows(); hearPitch(ct.pitches[i], i + 1); };
+    sel.addEventListener('change', () => set(Number(sel.value)));
+    down.addEventListener('click', () => set(ct.pitches[i] - 1));
+    up.addEventListener('click', () => set(ct.pitches[i] + 1));
+    hear.addEventListener('click', () => hearPitch(ct.pitches[i], i + 1));
+    tbody.appendChild(tr);
+  });
+  ctKoto.setTuning(ct.pitches, { changed: ct.pitches.map((p, i) => (p !== hira[i] ? i + 1 : 0)).filter(Boolean) });
+  const issues = checkTuningRealism(ct.pitches, base);
+  const ul = $('ctIssues');
+  ul.innerHTML = '';
+  const li = (cls, text) => { const x = document.createElement('li'); x.className = cls; x.textContent = text; ul.appendChild(x); };
+  const baseName = BASES.find((b) => b.offset === base)?.name || '';
+  if (!issues.length) li('good', `Every bridge stays within a comfortable range (compared with hira-jōshi on ${baseName}).`);
+  for (const is of issues) li('warn', is.message);
+  const dupes = ct.pitches.filter((p, i) => i > 0 && i !== 4 && ct.pitches.indexOf(p) !== i).length;
+  if (dupes > 1) li('info', 'Several strings share a pitch. That is allowed, but it leaves fewer different notes to play.');
+}
+
+function bindTuningEditor() {
+  $('ctStart').addEventListener('change', (e) => {
+    const v = e.target.value;
+    if (!v) return;
+    ct.pitches = v === '__current' ? state.arr.open.slice() : tuningOpen(getTuning(v), state.base);
+    renderTuningRows();
+  });
+  $('ctDown').addEventListener('click', () => { ct.pitches = ct.pitches.map((p) => Math.max(PITCH_MIN, p - 1)); renderTuningRows(); });
+  $('ctUp').addEventListener('click', () => { ct.pitches = ct.pitches.map((p) => Math.min(PITCH_MAX, p + 1)); renderTuningRows(); });
+  $('ctHear').addEventListener('click', () => {
+    audio.prepare(ct.pitches).then(() => ct.pitches.forEach((p, i) => audio.pluck({ midi: p, when: audio.now() + 0.05 + i * 0.22, dur: 0.6, string: i + 1 })));
+  });
+  $('ctSave').addEventListener('click', () => {
+    const name = $('ctName').value.trim() || 'My tuning';
+    const tuning = makeUserTuning({ id: ct.editing?.id, name, pitches: ct.pitches });
+    const i = userTunings.findIndex((t) => t.id === tuning.id);
+    if (i >= 0) userTunings[i] = tuning; else userTunings.push(tuning);
+    saveJSON(TUNING_KEY, userTunings);
+    registerUserTunings(userTunings);
+    $('tuningDialog').close();
+    selectTuning(tuning.id);
+    toast(`Saved “${name}”. It is now in the tuning list.`);
+  });
+  $('ctDelete').addEventListener('click', () => {
+    if (!ct.editing) return;
+    userTunings = userTunings.filter((t) => t.id !== ct.editing.id);
+    saveJSON(TUNING_KEY, userTunings);
+    registerUserTunings(userTunings);
+    $('tuningDialog').close();
+    if (state.tuningId === ct.editing.id) selectTuning('hira');
+    else { renderTuningSelect(); renderAdvisor(); }
+    toast(`Deleted “${ct.editing.name}”.`);
   });
 }
 
@@ -732,6 +856,8 @@ function songFromEditor() {
     score: $('edScore').value,
   };
   if (mode === 'pitch') delete song.sourceOpen;
+  const ut = getTuning(song.tuning);
+  if (mode === 'strings' && ut?.user) { song.sourceOpen = tuningOpen(ut); song.base = ut.base; }
   parseSong(song); // throws on error
   return song;
 }
@@ -858,7 +984,11 @@ function closeLibrary() {
 }
 
 function bind() {
-  $('tuningSelect').addEventListener('change', (e) => { state.tuningId = e.target.value; state.autoTranspose = true; renderTuningSelect(); arrange(); renderAdvisor(); });
+  $('tuningSelect').addEventListener('change', (e) => { selectTuning(e.target.value); });
+  $('newTuning').addEventListener('click', () => openTuningEditor(null, { pitches: state.arr.open }));
+  $('editTuning').addEventListener('click', () => openTuningEditor(getTuning(state.tuningId)));
+  $('saveFitted').addEventListener('click', () => openTuningEditor(null, { pitches: state.customOpen, name: `For ${state.song.title}` }));
+  bindTuningEditor();
   $('baseSelect').addEventListener('change', (e) => { state.base = Number(e.target.value); arrange(); scheduleAdvisor(); });
   $('transDown').addEventListener('click', () => { state.autoTranspose = false; state.transpose -= 1; arrange(); });
   $('transUp').addEventListener('click', () => { state.autoTranspose = false; state.transpose += 1; arrange(); });

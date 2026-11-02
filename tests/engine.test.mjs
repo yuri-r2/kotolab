@@ -149,3 +149,21 @@ test('measures group events by bar', () => {
   assert.equal(ms.length, 2);
   assert.equal(ms[1].events[0].d, 2);
 });
+
+test('custom tunings keep their notes and work everywhere presets do', async () => {
+  const { makeUserTuning, registerUserTunings, tuningOpen, getTuning: gt, TUNINGS: all } = await import('../js/tunings.js');
+  // a low G-based tuning: G C D E♭ G A♭ C D E♭ G A♭ C D (hira on 双調)
+  const pitches = [55, 48, 50, 51, 55, 56, 60, 62, 63, 67, 68, 72, 74];
+  const t = makeUserTuning({ id: 'user-test', name: 'Low hira', pitches });
+  assert.equal(t.base, -7);
+  assert.deepEqual(tuningOpen(t), pitches);
+  assert.equal(checkTuningRealism(tuningOpen(t), t.base).length, 0);
+  registerUserTunings([t]);
+  assert.equal(gt('user-test').name, 'Low hira');
+  const song = SONGS.find((s) => s.id === 'sakura');
+  const rec = recommendTunings(prep(song), all, { tempo: song.tempo });
+  const mine = rec.find((r) => r.tuning.id === 'user-test');
+  assert.equal(mine.stats.open, mine.stats.notes, 'Sakura fits a hira-shaped custom tuning on open strings');
+  registerUserTunings([]);
+  assert.equal(gt('user-test'), null);
+});

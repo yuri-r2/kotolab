@@ -155,3 +155,45 @@ export function parsePitch(text) {
 export function midiToFreq(midi, a4 = 440) {
   return a4 * Math.pow(2, (midi - 69) / 12);
 }
+
+/**
+ * Custom tunings made by the player. Each is stored relative to the base
+ * (string-一 pitch family) it is closest to, so realism checks and the
+ * "compared with hira-jōshi" view stay meaningful even for low tunings.
+ * They are added to TUNINGS so every part of the app can use them.
+ */
+export function makeUserTuning({ id, name, pitches }) {
+  const base = bestBase(pitches);
+  return {
+    id: id || `user-${Date.now().toString(36)}`,
+    name: name || 'My tuning',
+    jp: '',
+    user: true,
+    base,
+    strings: pitches.map((p) => p - base),
+    changes: {},
+    character: `Custom tuning: ${pitches.map((p) => pitchName(p, { octave: false })).join(' ')}.`,
+    usedFor: 'Your own tuning',
+  };
+}
+
+export function registerUserTunings(list) {
+  for (let i = TUNINGS.length - 1; i >= 0; i--) if (TUNINGS[i].user) TUNINGS.splice(i, 1);
+  TUNINGS.push(...list);
+}
+
+/** Absolute open pitches of a tuning (user tunings carry their own base). */
+export function tuningOpen(tuning, base = 0) {
+  return tuning.strings.map((p) => p + (tuning.user ? tuning.base : base));
+}
+
+/** The base offset (from BASES) whose hira-jōshi is closest to these pitches. */
+export function bestBase(pitches) {
+  let best = 0, bestErr = Infinity;
+  for (const b of BASES) {
+    const hira = hiraPitches(b.offset);
+    const err = pitches.reduce((s, p, i) => s + Math.abs(p - hira[i]), 0);
+    if (err < bestErr) { bestErr = err; best = b.offset; }
+  }
+  return best;
+}

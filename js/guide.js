@@ -109,7 +109,7 @@ export class TuningGuide {
     sel.innerHTML = '';
     const add = (value, text) => { const o = document.createElement('option'); o.value = value; o.textContent = text; sel.appendChild(o); };
     if (current) add('saved', `As I last tuned it: ${current.label}`);
-    for (const t of this.presets) add(t.id, `${t.name} ${t.jp}`);
+    for (const t of this.presets) add(t.id, t.user ? `${t.name} (my tuning)` : `${t.name} ${t.jp}`);
     add('scratch', 'Not tuned yet (new strings or unsure)');
     sel.value = current ? 'saved' : 'hira';
     if (!this.els.fromBase.options.length) {
@@ -123,11 +123,11 @@ export class TuningGuide {
 
   fromOpen() {
     const v = this.els.fromTuning.value;
-    this.els.fromBase.disabled = v === 'saved' || v === 'scratch';
+    const t = this.presets.find((p) => p.id === v);
+    this.els.fromBase.disabled = v === 'saved' || v === 'scratch' || !!t?.user;
     if (v === 'scratch') return null;
     if (v === 'saved') return this.current.open;
-    const t = this.presets.find((p) => p.id === v);
-    return t.strings.map((p) => p + Number(this.els.fromBase.value));
+    return t.strings.map((p) => p + (t.user ? t.base : Number(this.els.fromBase.value)));
   }
 
   preview() {

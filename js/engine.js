@@ -351,7 +351,7 @@ export function optimizeTuning(events, opts) {
 export function recommendTunings(events, tunings, opts) {
   const base = opts.base || 0;
   const results = tunings.map((tuning) => {
-    const open = tuning.strings.map((p) => p + base);
+    const open = tuning.strings.map((p) => p + (tuning.user ? tuning.base : base));
     const best = fitBest(events, { ...opts, open, keepStrings: opts.keepFor === tuning.id });
     return { tuning, transpose: best.transpose, score: best.score, stats: best.stats };
   });
