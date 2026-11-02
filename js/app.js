@@ -93,7 +93,7 @@ function renderWake(w) {
   b.setAttribute('aria-pressed', String(w.enabled));
   b.classList.toggle('on', w.enabled && w.active);
   b.classList.toggle('waiting', w.enabled && !w.active);
-  b.textContent = !w.enabled ? 'Keep screen on' : w.active ? 'Screen stays on' : 'Screen on: tap to retry';
+  document.getElementById('wakeLbl').textContent = !w.enabled ? 'Keep screen on' : w.active ? 'Screen stays on' : 'Screen on: tap to retry';
   if (w.enabled && w.error && w.error !== 'unsupported' && !wakeNotified) {
     wakeNotified = true;
     toast('This browser didn’t allow keeping the screen on. Battery saver can block it, and some in-app browsers never allow it. Tap anywhere to try again, or open KotoLab in Chrome, Safari, Edge or Firefox.');
