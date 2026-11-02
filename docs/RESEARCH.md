@@ -75,6 +75,31 @@ Right-hand fingering uses a second dynamic-programming pass: thumb by default,
 the middle finger for reaches back toward 一 and for kaki-zume, thumb–index
 alternation for fast repeated notes, and thumb + middle for octave pairs.
 
+## Bare strings and string tension
+
+On most kotos the strings have no pegs. Each one is knotted at the tail end
+(龍尾 ryūbi), and a craftsman sets its tension when the strings are tied or
+re-tied (糸締め itojime: new strings, 天地 tenchi, or 送り・切りつめ trimming).
+Players are advised to ask the shop for a looser or tighter setting rather
+than adjust it themselves
+([Satsuki Koto, interview with a koto technician](https://satsukikoto.com.au/interview-with-a-koto-technician/);
+[Umeya Gakki care manual](https://umeya-gakki.heteml.net/umeya-gakki/contents/manual2021.pdf)).
+Some kotos do have metal tuning pegs, anchored in a block and reached through
+an opening at one end that is hidden by a cloth end cap
+([Grinnell College instrument collection](https://omeka-s.grinnell.edu/s/MusicalInstruments/item/644);
+see also patent [JPH0626955Y2](https://patents.google.com/patent/JPH0626955Y2/en) for a
+string wound on a bobbin under the end cover).
+
+The 13 strings are the same length between the fixed bridges and normally the
+same gauge, so equal tension means every bare string sounds the same note.
+KotoLab aims that note three half steps below the lowest note of the tuning.
+That puts the lowest string's bridge about 84% of the way to the far end and
+keeps the highest bridge clear of the player's fixed bridge. With pegs it tunes
+each bare string to that note within ±15 cents (the bridges do the fine
+tuning). With knotted strings it measures each one and compares it with the
+median: within ±50 cents counts as even, and larger gaps are reported as
+candidates for re-tying.
+
 ## Limits
 
 * The model is a heuristic. It does not know a particular school's fingering

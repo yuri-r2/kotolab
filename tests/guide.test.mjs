@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { getTuning } from '../js/tunings.js';
-import { planTuningSteps, describeMove, describeRelation } from '../js/guide.js';
+import { getTuning, TUNINGS } from '../js/tunings.js';
+import { planTuningSteps, describeMove, describeRelation, bareTargetMidi, surveyTension, foldToOctave, bridgeDistance, placementStatus } from '../js/guide.js';
 import { detectPitch, centsOff } from '../js/tuner.js';
 
 test('retuning hira → kumoi moves exactly strings 三 四 八 九', () => {
@@ -63,4 +63,29 @@ test('bridge placement from the bare-string pitch', async () => {
   const f0 = estimateBareFreq(hira);
   assert.ok(Math.abs(bridgeDistance(f0, 55, 170) - 153) < 0.01);
   assert.equal(placementStatus(bridgeDistance(f0, 81, 170), 170), 'ok');
+});
+
+test('bare strings: one shared note below the tuning, every bridge in a realistic spot', () => {
+  for (const { id: name, strings: open } of TUNINGS) {
+    const bare = bareTargetMidi(open);
+    assert.ok(bare < Math.min(...open), name);
+    const f0 = 440 * 2 ** ((bare - 69) / 12);
+    for (const p of open) assert.equal(placementStatus(bridgeDistance(f0, p, 170), 170), 'ok', `${name} ${p}`);
+  }
+});
+
+test('knotted strings: survey flags slack and tight strings against the median', () => {
+  const f = (cents) => 165 * 2 ** (cents / 1200);
+  const measured = [0, 10, -20, 5, -120, 0, 15, 200, -5, 0, 8, -10, null].map((c, i) => ({ string: i + 1, f0: c == null ? null : f(c) }));
+  const { median, rows } = surveyTension(measured);
+  assert.ok(Math.abs(1200 * Math.log2(median / 165)) < 10);
+  assert.equal(rows[4].verdict, 'slack');
+  assert.equal(rows[7].verdict, 'tight');
+  assert.equal(rows[12].verdict, 'unmeasured');
+  assert.equal(rows.filter((r) => r.verdict === 'even').length, 10);
+});
+
+test('a bare string read an octave up is folded back', () => {
+  assert.ok(Math.abs(foldToOctave(331, 165) - 165.5) < 0.01);
+  assert.ok(Math.abs(foldToOctave(170, 165) - 170) < 0.01);
 });

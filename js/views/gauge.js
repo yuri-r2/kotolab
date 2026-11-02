@@ -35,7 +35,7 @@ export class TunerGauge {
     const svg = el('svg', { class: 'gauge-svg', viewBox: '0 0 320 214', role: 'img', 'aria-label': 'Tuning meter' }, this.container);
     // zones: red edges, amber, green centre
     const tol = angleFor(this.tolerance);
-    const amber = angleFor(20);
+    const amber = angleFor(Math.max(20, this.tolerance * 2));
     el('path', { d: arc(-SPAN, -amber, R), class: 'g-zone g-far' }, svg);
     el('path', { d: arc(-amber, -tol, R), class: 'g-zone g-near' }, svg);
     el('path', { d: arc(-tol, tol, R), class: 'g-zone g-in' }, svg);
@@ -71,6 +71,16 @@ export class TunerGauge {
     this.cue.className = 'g-cue';
     this.container.appendChild(this.cue);
     this.setState('idle');
+  }
+
+  /** Width of the green zone, in cents (bare strings need less precision than bridged ones). */
+  setTolerance(cents) {
+    if (cents === this.tolerance) return;
+    this.tolerance = cents;
+    cancelAnimationFrame(this.raf);
+    this.raf = null;
+    this.build();
+    this.needle.setAttribute('transform', `rotate(${this.angle.toFixed(2)} ${CX} ${CY})`);
   }
 
   setState(state) {
@@ -119,7 +129,7 @@ export class TunerGauge {
     const rc = Math.round(cents);
     this.cents.textContent = wrong ? 'other string' : `${rc > 0 ? '+' : rc < 0 ? '−' : '±'}${Math.abs(rc)}¢`;
     this.cue.textContent = cue || '';
-    this.setState(wrong ? 'far' : abs <= this.tolerance ? 'in' : abs <= 20 ? 'near' : 'far');
+    this.setState(wrong ? 'far' : abs <= this.tolerance ? 'in' : abs <= Math.max(20, this.tolerance * 2) ? 'near' : 'far');
     this.kick();
   }
 
