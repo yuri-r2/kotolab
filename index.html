@@ -1,0 +1,219 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>KotoLab — learn koto songs</title>
+  <meta name="description" content="Learn songs on the 13-string koto: tuning-aware arrangements, traditional vertical notation, tablature and real-time playback.">
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='12' fill='%231c2433'/%3E%3Ctext x='32' y='45' font-size='38' text-anchor='middle' fill='%23f4eedc' font-family='serif'%3E箏%3C/text%3E%3C/svg%3E">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <button class="icon-btn only-narrow" id="libraryToggle" aria-label="Show song library" aria-expanded="false">☰</button>
+    <a class="brand" href="./" aria-label="KotoLab home"><span class="brand-kanji">箏</span><span class="brand-name">KotoLab</span></a>
+    <nav class="top-actions">
+      <button class="text-btn" id="openLearn">Learn the basics</button>
+      <button class="text-btn" id="openEditor">Edit score</button>
+    </nav>
+  </header>
+
+  <div class="layout">
+    <aside class="library" id="library" aria-label="Song library">
+      <div class="library-scroll">
+        <div id="songList"></div>
+        <section class="import">
+          <h2>Add a song</h2>
+          <label class="file-btn">Import MIDI file<input type="file" id="midiFile" accept=".mid,.midi,audio/midi"></label>
+          <label class="file-btn">Import Humdrum **koto<input type="file" id="krnFile" accept=".krn,.txt,.hmd"></label>
+          <label class="file-btn">Open KotoLab song (.json)<input type="file" id="jsonFile" accept=".json,application/json"></label>
+          <button class="file-btn" id="newSong">Write a new song</button>
+          <p class="hint">MIDI melodies are arranged automatically for the tuning you choose.</p>
+        </section>
+      </div>
+    </aside>
+
+    <main class="main" id="main">
+      <section class="song-head">
+        <div>
+          <h1 id="songTitle">Sakura Sakura</h1>
+          <p class="song-meta"><span id="songJp" lang="ja"></span><span id="songComposer"></span></p>
+        </div>
+        <p class="song-about" id="songAbout"></p>
+      </section>
+
+      <section class="arrange" aria-label="Tuning and arrangement">
+        <label class="field">
+          <span>Tuning</span>
+          <select id="tuningSelect"></select>
+        </label>
+        <label class="field">
+          <span>String 一 tuned to</span>
+          <select id="baseSelect"></select>
+        </label>
+        <div class="field">
+          <span>Transpose</span>
+          <div class="stepper">
+            <button id="transDown" aria-label="Transpose down">−</button>
+            <output id="transValue">0</output>
+            <button id="transUp" aria-label="Transpose up">+</button>
+            <button class="chip" id="transAuto">Best fit</button>
+          </div>
+        </div>
+        <label class="field">
+          <span>Deepest press</span>
+          <select id="maxPress">
+            <option value="1">Half step only (ヲ)</option>
+            <option value="2" selected>Whole step (オ)</option>
+            <option value="3">Step and a half</option>
+          </select>
+        </label>
+        <label class="check" id="keepWrap"><input type="checkbox" id="keepStrings" checked> Keep the original string choices</label>
+      </section>
+
+      <section class="koto-stage" aria-label="Koto">
+        <div id="kotoView"></div>
+        <p class="koto-hint">Click a string to hear it. Shift-click for a half-step press, Alt-click for a whole step. Highlighted bridges have moved from hira-jōshi.</p>
+      </section>
+
+      <section class="transport" aria-label="Playback">
+        <button class="play" id="playBtn" aria-label="Play">▶</button>
+        <button class="icon-btn" id="stopBtn" aria-label="Stop">■</button>
+        <button class="icon-btn" id="prevBtn" aria-label="Previous note">⏮</button>
+        <button class="icon-btn" id="nextBtn" aria-label="Next note">⏭</button>
+        <label class="speed">
+          <span>Speed</span>
+          <input type="range" id="speed" min="25" max="150" step="5" value="100">
+          <output id="speedValue">100% · ♩=66</output>
+        </label>
+        <label class="check"><input type="checkbox" id="loopToggle"> Loop bars <output id="loopValue"></output></label>
+        <label class="check"><input type="checkbox" id="metronome"> Metronome</label>
+        <label class="check"><input type="checkbox" id="countIn"> Count in</label>
+        <label class="field compact">
+          <span>Sound</span>
+          <select id="soundSelect">
+            <option value="synth">Plucked synth</option>
+            <option value="samples">Koto samples (online)</option>
+          </select>
+        </label>
+      </section>
+
+      <section class="score" aria-label="Score">
+        <div class="score-tabs" role="tablist">
+          <button role="tab" class="tab active" id="tabTab" aria-selected="true" data-view="tab">Tablature</button>
+          <button role="tab" class="tab" id="tabVert" aria-selected="false" data-view="vertical">Vertical score 縦譜</button>
+          <span class="spacer"></span>
+          <label class="check"><input type="checkbox" id="showPitches"> Pitch names</label>
+          <label class="check"><input type="checkbox" id="showSyllables" checked> <span id="syllableLabel">Lyrics</span></label>
+        </div>
+        <div class="score-body" id="scoreBody">
+          <div id="tabView" class="view"></div>
+          <div id="vertView" class="view" hidden></div>
+        </div>
+        <p class="score-hint">Click a bar number to loop from that bar, Shift-click another to set the end. Space plays and pauses; ← → step through notes.</p>
+      </section>
+    </main>
+
+    <aside class="side" aria-label="Details">
+      <section class="panel" id="playability">
+        <h2>Playability</h2>
+        <div class="difficulty">
+          <div class="meter"><span id="diffBar"></span></div>
+          <p><strong id="diffLevel">Beginner</strong> <span id="diffScore"></span></p>
+        </div>
+        <dl class="stats" id="stats"></dl>
+        <ul class="issues" id="issues"></ul>
+      </section>
+
+      <section class="panel" id="inspector">
+        <h2>Selected note</h2>
+        <div id="inspectorBody"><p class="muted">Click a note in the score to see how to play it.</p></div>
+      </section>
+
+      <section class="panel">
+        <h2>Tuning advisor</h2>
+        <p class="muted small">Every tuning, at its best transposition, ranked by how easy this song is to play.</p>
+        <ol class="advisor" id="advisor"></ol>
+        <button class="wide-btn" id="fitBridges">Fit the bridges to this song</button>
+        <p class="muted small" id="fitNote"></p>
+      </section>
+
+      <section class="panel">
+        <h2>Bridge settings</h2>
+        <table class="bridges" id="bridgeTable"></table>
+      </section>
+    </aside>
+  </div>
+
+  <dialog class="drawer" id="learnDrawer" aria-labelledby="learnTitle">
+    <div class="drawer-head">
+      <h2 id="learnTitle">Learn the basics</h2>
+      <button class="icon-btn" data-close aria-label="Close">✕</button>
+    </div>
+    <div class="drawer-body" id="learnBody"></div>
+  </dialog>
+
+  <dialog class="drawer wide" id="editorDrawer" aria-labelledby="editorTitle">
+    <div class="drawer-head">
+      <h2 id="editorTitle">Edit score</h2>
+      <button class="icon-btn" data-close aria-label="Close">✕</button>
+    </div>
+    <div class="drawer-body editor">
+      <div class="editor-meta">
+        <label class="field"><span>Title</span><input id="edTitle"></label>
+        <label class="field"><span>Written as</span>
+          <select id="edMode"><option value="pitch">Pitches (arranged for any tuning)</option><option value="strings">Koto strings (for one tuning)</option></select>
+        </label>
+        <label class="field"><span>Written for tuning</span><select id="edTuning"></select></label>
+        <label class="field"><span>Tempo ♩</span><input id="edTempo" type="number" min="20" max="240"></label>
+        <label class="field"><span>Time signature</span><input id="edTime" placeholder="4/4"></label>
+      </div>
+      <textarea id="edScore" spellcheck="false" aria-label="Score text"></textarea>
+      <p class="ed-error" id="edError" role="alert"></p>
+      <details class="syntax">
+        <summary>Score syntax</summary>
+        <pre>s7q        string 七, quarter note      (w h q e s t = 4 2 1 ½ ¼ ⅛ beats)
+s9p2e      string 九 pressed a whole step (p1 half, p2 whole), eighth
+E4q F#4e   pitches — KotoLab picks strings and presses for you
+s1+s5q     two strings together (合せ爪)
+rq         quarter rest            q.  dotted       e3  triplet eighth
+-h         hold the previous note for another half note
+@hiki @tsuki @yuri @ato @ato1 @hanashi @kaki @wari @sukui @suri @keshi @left
+#2 #3 #L   finger: index, middle, left hand (thumb is the default)
+~ton       syllable shown above the note (kuchi-shōga or lyric)
+|          bar line (optional, for readability)     % comment</pre>
+      </details>
+      <div class="editor-actions">
+        <button class="primary" id="edApply">Apply changes</button>
+        <button id="edSave">Save to my songs</button>
+        <button id="edExport">Download .json</button>
+        <button id="edDelete" class="danger" hidden>Delete from my songs</button>
+      </div>
+    </div>
+  </dialog>
+
+  <dialog class="drawer" id="midiDialog" aria-labelledby="midiTitle">
+    <div class="drawer-head">
+      <h2 id="midiTitle">Import MIDI</h2>
+      <button class="icon-btn" data-close aria-label="Close">✕</button>
+    </div>
+    <div class="drawer-body">
+      <label class="field"><span>Track to use as the melody</span><select id="midiTrack"></select></label>
+      <label class="field"><span>Notes per beat</span>
+        <select id="midiVoices"><option value="1">Melody only</option><option value="2">Melody and one lower note (chords)</option></select>
+      </label>
+      <label class="field"><span>Rhythm grid</span>
+        <select id="midiGrid"><option value="0.25">Sixteenth notes</option><option value="0.5">Eighth notes</option><option value="0.125">Thirty-second notes</option></select>
+      </label>
+      <div class="editor-actions"><button class="primary" id="midiImport">Arrange for koto</button></div>
+    </div>
+  </dialog>
+
+  <div class="toast" id="toast" role="status" aria-live="polite"></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>
