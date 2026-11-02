@@ -96,7 +96,7 @@ function renderWake(w) {
   b.textContent = !w.enabled ? 'Keep screen on' : w.active ? 'Screen stays on' : 'Screen on: tap to retry';
   if (w.enabled && w.error && w.error !== 'unsupported' && !wakeNotified) {
     wakeNotified = true;
-    toast('The browser didn’t allow keeping the screen on yet (battery saver can block it). Tap anywhere to try again.');
+    toast('This browser didn’t allow keeping the screen on. Battery saver can block it, and some in-app browsers never allow it. Tap anywhere to try again, or open KotoLab in Chrome, Safari, Edge or Firefox.');
   }
   if (w.active) wakeNotified = false;
 }
