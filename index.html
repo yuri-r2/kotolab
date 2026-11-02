@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=0e680af2">
+  <link rel="stylesheet" href="css/style.css?v=deaf22c1">
 </head>
 <body>
   <header class="topbar">
@@ -188,22 +188,19 @@
             <div class="guide-target-line"><span>This song needs</span> <strong class="guide-target" id="guideTarget"></strong></div>
             <div class="guide-choices">
               <div class="guide-choice">
-                <button class="primary" id="guideCheck">Tune or check my koto</button>
-                <p>Bridges already on: pluck each string and the microphone tells you which way to slide its bridge, then confirms it.</p>
+                <h3 class="choice-title">Tune my koto</h3>
+                <p>Bridges on. Pluck each string; the microphone shows which way to slide its bridge and confirms when it is in tune.</p>
+                <button class="primary" id="guideCheck">Start tuning</button>
               </div>
               <div class="guide-choice">
-                <button id="guideBridges">Set up from scratch (bridges off)</button>
-                <p>Bridges off, strings already even: KotoLab measures each bare string, shows where its bridge goes, then checks it.</p>
-                <label class="field" id="guideLengthWrap"><span>String length (cm) <button type="button" class="tip" data-tip="String length between the two fixed end bridges, used to place each bridge." aria-label="About String length">i</button></span><input id="guideLength" type="number" min="100" max="200" step="1" value="170"></label>
-              </div>
-              <div class="guide-choice">
-                <h3 class="choice-title">No bridges at all <button type="button" class="tip" data-tip="Most kotos have no pegs: strings are knotted at the tail end. Some have metal pegs under a cover at one end." aria-label="Pegs or knotted strings?">i</button></h3>
-                <p>Before the bridges go on: make sure the 13 bare strings carry even tension. How are your strings held?</p>
+                <h3 class="choice-title">Initial setup <button type="button" class="tip" data-tip="For a koto with no bridges on: new strings, after storage, or after re-tying." aria-label="About initial setup">i</button></h3>
+                <p>No bridges on yet. First KotoLab checks the bare strings, then shows where each bridge goes and tunes it.</p>
+                <p class="choice-q">How are your strings held? <button type="button" class="tip" data-tip="Most kotos have no pegs: strings are knotted at the tail end. Some have metal pegs under a cover at one end." aria-label="Pegs or knotted strings?">i</button></p>
                 <div class="choice-pair">
+                  <button id="guideKnots">Knotted (most kotos)</button>
                   <button id="guidePegs">Tuning pegs</button>
-                  <button id="guideKnots">Knotted (no pegs)</button>
                 </div>
-                <p class="choice-note">Pegs: KotoLab tunes each bare string to the same note. Knotted: it measures them and tells you if any need re-tying. Then it walks you through placing the bridges.</p>
+                <label class="field field-inline" id="guideLengthWrap"><span>String length <button type="button" class="tip" data-tip="Between the two fixed end bridges. Used to work out where each bridge goes." aria-label="About string length">i</button></span><span class="with-unit"><input id="guideLength" type="number" min="100" max="200" step="1" value="170"> cm</span></label>
               </div>
             </div>
           </div>
@@ -248,7 +245,7 @@
             <ul class="tension-list" id="guideFinishList" hidden aria-label="Bare string tension"></ul>
             <div class="guide-buttons">
               <button class="primary" id="guideToPlay">Start playing</button>
-              <button class="primary" id="guideBridgesNow" hidden>Place the bridges</button>
+              <button class="primary" id="guideBridgesNow" hidden>Next: place the bridges</button>
               <button id="guideAgain">Check all strings again</button>
             </div>
           </div>
@@ -392,11 +389,11 @@ rq         quarter rest            q.  dotted       e3  triplet eighth
   <script type="importmap">
 {
   "imports": {
-    "./js/app.js": "./js/app.js?v=c14ab7cb",
+    "./js/app.js": "./js/app.js?v=551d39d6",
     "./js/audio.js": "./js/audio.js?v=0cbca01d",
     "./js/difficulty.js": "./js/difficulty.js?v=5e406908",
     "./js/engine.js": "./js/engine.js?v=1c53d51f",
-    "./js/guide.js": "./js/guide.js?v=d66d4cb2",
+    "./js/guide.js": "./js/guide.js?v=530d93d7",
     "./js/importers.js": "./js/importers.js?v=7052aaed",
     "./js/notation.js": "./js/notation.js?v=fda80ddf",
     "./js/player.js": "./js/player.js?v=345bd9cb",
@@ -417,6 +414,6 @@ rq         quarter rest            q.  dotted       e3  triplet eighth
   }
 }
   </script>
-  <script type="module" src="js/app.js?v=c14ab7cb"></script>
+  <script type="module" src="js/app.js?v=551d39d6"></script>
 </body>
 </html>

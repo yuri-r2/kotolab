@@ -634,7 +634,10 @@ body.has-fullscreen .topbar { z-index: 1; }
 .guide-choice .field input { width: 90px; }
 .guide-choice .choice-title { margin: 0; font: 700 15px var(--sans); }
 .guide-choice .choice-pair { display: flex; flex-wrap: wrap; gap: 8px; }
-.guide-choice .choice-note { font-size: 12.5px; }
+.guide-choice .choice-q { color: var(--ink); font-weight: 700; margin-top: 2px; }
+.guide-choice .field-inline { flex-direction: row; align-items: center; gap: 8px; font-size: 13px; color: var(--ink-soft); }
+.guide-choice .with-unit { display: inline-flex; align-items: center; gap: 6px; }
+.guide-choice .field-inline input { width: 72px; min-width: 0; padding: 4px 8px; }
 .tension-list { width: 100%; list-style: none; margin: 0; padding: 0; display: grid; grid-template-columns: repeat(auto-fill, minmax(78px, 1fr)); gap: 6px; }
 .tension-list li { display: flex; align-items: baseline; gap: 6px; padding: 5px 8px; border-radius: var(--r-sm); border: 1px solid var(--rule); background: var(--card); font-size: 13px; font-variant-numeric: tabular-nums; }
 .tension-list li b { font: 700 16px var(--serif); }

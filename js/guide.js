@@ -164,7 +164,6 @@ export class TuningGuide {
     this.micFailed = false;
     this.gauge = new TunerGauge(els.gauge, { tolerance: TOLERANCE_CENTS });
     els.check.addEventListener('click', () => this.begin('check'));
-    els.bridges.addEventListener('click', () => this.begin('bridges'));
     els.pegs.addEventListener('click', () => this.begin('pegs'));
     els.knots.addEventListener('click', () => this.begin('knots'));
     els.bridgesNow.addEventListener('click', () => this.begin('bridges', { useBare: true }));
@@ -193,7 +192,7 @@ export class TuningGuide {
     this.koto.setGhost(null);
     this.koto.focus(null);
     this.koto.setBridgesVisible(null);
-    this.els.intro.textContent = 'Pick how to start. Either way the microphone listens to each string and moves on by itself once it is in tune.';
+    this.els.intro.textContent = 'The microphone listens to each string and moves on by itself once it is right.';
   }
 
   showStart() {
@@ -267,8 +266,10 @@ export class TuningGuide {
     e.step.hidden = false;
     e.finish.hidden = true;
     e.progress.textContent = this.tension
-      ? `${this.mode === 'pegs' ? 'Evening out' : 'Measuring'} bare string ${i + 1} of ${this.steps.length}`
-      : `${this.mode === 'check' ? 'Checking' : this.mode === 'bridges' ? 'Setting up' : 'Tuning'} string ${i + 1} of ${this.steps.length}`;
+      ? `Setup 1 of 2 · Bare strings · string ${i + 1} of ${this.steps.length}`
+      : this.mode === 'bridges'
+        ? `Setup 2 of 2 · Bridges · string ${i + 1} of ${this.steps.length}`
+        : `Tuning string ${i + 1} of ${this.steps.length}`;
     this.gauge.setTolerance(this.mode === 'pegs' ? BARE_TOLERANCE_CENTS : TOLERANCE_CENTS);
     e.kanji.textContent = STRING_NAMES[step.string - 1];
     e.what.textContent = step.check ? describeCheck(step) : describeMove(step);

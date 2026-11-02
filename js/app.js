@@ -52,7 +52,7 @@ const guideKoto = new KotoView($('guideKoto'), { onPluck: (string) => {
 } });
 const guide = new TuningGuide({
   els: {
-    intro: $('guideIntro'), target: $('guideTarget'), bridges: $('guideBridges'),
+    intro: $('guideIntro'), target: $('guideTarget'),
     check: $('guideCheck'), again: $('guideAgain'), pegs: $('guidePegs'), knots: $('guideKnots'), bridgesNow: $('guideBridgesNow'),
     finishList: $('guideFinishList'), toPlay: $('guideToPlay'), chips: $('stepChips'), level: $('micLevel'), startBox: $('guideStartBox'), step: $('guideStep'), kanji: $('stepKanji'), progress: $('stepProgress'),
     what: $('stepWhat'), hint: $('stepHint'), playTarget: $('stepPlay'), playCompare: $('stepCompare'), mic: $('stepMic'),
