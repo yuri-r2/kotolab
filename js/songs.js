@@ -6,7 +6,9 @@
 // mode 'pitch': written as pitches; KotoLab chooses strings, presses and
 //   transposition for whatever tuning you select ('auto' = best fit).
 
-export const SONGS = [
+import { MEIJI_SONGS } from './songs-meiji.js';
+
+const BASE_SONGS = [
   {
     id: 'sakura',
     title: 'Sakura Sakura',
@@ -212,3 +214,5 @@ rh rq C4q | F4q. F4e F4q A4q | G4q. F4e G4q A4q | F4q. F4e A4q C5q | D5h. D5q |
 C5q. A4e A4q F4q | G4q. F4e G4q A4q | F4q. D4e D4q C4q | F4h. rq |`,
   },
 ];
+
+export const SONGS = [...BASE_SONGS, ...MEIJI_SONGS];

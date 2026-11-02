@@ -9,11 +9,11 @@ import { STRING_NAMES, pitchName } from '../tunings.js';
 import { TECHNIQUES, FINGERS } from '../techniques.js';
 import { barBeats, beatUnit } from '../notation.js';
 
-const LANE = 15;
-const GUTTER = 62;
-const TOP = 46;
-const RHYTHM = 40;
 const EPS = 1e-6;
+
+// Layout sizes; narrow screens get a tighter layout so two bars fit per line.
+const ROOMY = { lane: 15, gutter: 62, top: 46, rhythm: 40, minBeat: 46, pitchLabels: true };
+const COMPACT = { lane: 13, gutter: 30, top: 40, rhythm: 32, minBeat: 30, pitchLabels: false };
 
 export class TabView {
   constructor(container, { onSelect, onBar } = {}) {
@@ -22,18 +22,22 @@ export class TabView {
     this.onBar = onBar;
     this.noteEls = new Map();
     this.systems = [];
-    this.options = { pitches: false, syllables: true, rtl: false };
+    this.options = { pitches: false, syllables: true, rtl: false, zoom: 1 };
+    this.L = ROOMY;
   }
 
   render(arr) {
     this.arr = arr;
     clear(this.container);
     this.noteEls.clear();
-    const width = Math.max(320, this.container.clientWidth || 900);
+    const zoom = this.options.zoom || 1;
+    const outer = Math.max(280, this.container.clientWidth || 900);
+    const width = outer / zoom; // lay out in logical units, then scale the drawing
+    this.L = width < 560 ? COMPACT : ROOMY;
     const bb = barBeats(arr.timeSig);
     const measures = arr.measures;
-    const minBeat = width < 600 ? 40 : 46;
-    const usable = width - GUTTER - 8;
+    const minBeat = this.L.minBeat;
+    const usable = width - this.L.gutter - 8;
     // group measures into systems
     const systems = [];
     let cur = [];
@@ -48,8 +52,10 @@ export class TabView {
       beats += m.beats;
     }
     if (cur.length) systems.push(cur);
-    const sysH = TOP + LANE * 13 + RHYTHM + 18;
-    const svg = el('svg', { class: 'tab-svg', width, height: systems.length * sysH + 10, viewBox: `0 0 ${width} ${systems.length * sysH + 10}`, role: 'img', 'aria-label': 'Koto tablature' }, this.container);
+    const sysH = this.L.top + this.L.lane * 13 + this.L.rhythm + 18;
+    const logicalH = systems.length * sysH + 10;
+    const svg = el('svg', { class: 'tab-svg', width: outer, height: logicalH * zoom, viewBox: `0 0 ${width} ${logicalH}`, role: 'img', 'aria-label': 'Koto tablature' }, this.container);
+    this.zoom = zoom;
     this.svg = svg;
     const root = el('g', { class: 'tab-root' }, svg);
     this.root = root;
@@ -61,17 +67,18 @@ export class TabView {
       const isLast = si === systems.length - 1;
       const beatPx = isLast && systems.length > 1 ? Math.min(usable / totalBeats, usable / fullBeats) : usable / totalBeats;
       const g = el('g', { class: 'system' }, root);
-      const laneY = (s) => y0 + TOP + (s - 1) * LANE + LANE / 2;
-      const xEnd = GUTTER + totalBeats * beatPx;
+      this.sylRows = [-Infinity, -Infinity];
+      const laneY = (s) => y0 + this.L.top + (s - 1) * this.L.lane + this.L.lane / 2;
+      const xEnd = this.L.gutter + totalBeats * beatPx;
       // lane labels and lines
       for (let s = 1; s <= 13; s++) {
         const y = laneY(s);
-        el('line', { x1: GUTTER, x2: xEnd, y1: y, y2: y, class: 'lane' + (s === 5 || s === 10 ? ' lane-mark' : '') }, g);
-        el('text', { x: 6, y: y + 4.5, class: 'lane-name', text: STRING_NAMES[s - 1] }, g);
-        el('text', { x: GUTTER - 6, y: y + 3.5, class: 'lane-pitch', 'text-anchor': 'end', text: pitchName(arr.open[s - 1], { octave: false }) }, g);
+        el('line', { x1: this.L.gutter, x2: xEnd, y1: y, y2: y, class: 'lane' + (s === 5 || s === 10 ? ' lane-mark' : '') }, g);
+        el('text', { x: this.L.pitchLabels ? 6 : this.L.gutter / 2 - 2, y: y + 4.5, class: 'lane-name', 'text-anchor': this.L.pitchLabels ? 'start' : 'middle', text: STRING_NAMES[s - 1] }, g);
+        if (this.L.pitchLabels) el('text', { x: this.L.gutter - 6, y: y + 3.5, class: 'lane-pitch', 'text-anchor': 'end', text: pitchName(arr.open[s - 1], { octave: false }) }, g);
       }
-      let x = GUTTER;
-      const sysInfo = { y0, y1: y0 + sysH, x0: GUTTER, beatPx, start: sys[0].start, end: sys[sys.length - 1].start + sys[sys.length - 1].beats };
+      let x = this.L.gutter;
+      const sysInfo = { y0, y1: y0 + sysH, x0: this.L.gutter, beatPx, start: sys[0].start, end: sys[sys.length - 1].start + sys[sys.length - 1].beats };
       this.systems.push(sysInfo);
       for (const m of sys) {
         // bar line + number
@@ -111,7 +118,7 @@ export class TabView {
     const groups = new Map();
     for (const ev of m.events) {
       const x = x0 + (ev.t - m.start) * beatPx + 3;
-      const w = Math.max(18, Math.min(26, beatPx * ev.d * 0.9));
+      const w = Math.max(this.L.pitchLabels ? 18 : 16, Math.min(26, beatPx * ev.d * 0.9));
       if (ev.rest) {
         el('text', { x: x + 8, y: laneY(7) + 4, class: 'rest', text: '○', 'text-anchor': 'middle' }, g);
         continue;
@@ -122,7 +129,7 @@ export class TabView {
       const els = [];
       for (const n of ev.notes) {
         if (n.omitted || !n.string) {
-          el('text', { x: x + 8, y: y0 + TOP - 6, class: 'omitted', text: '✕', 'text-anchor': 'middle' }, grp);
+          el('text', { x: x + 8, y: y0 + this.L.top - 6, class: 'omitted', text: '✕', 'text-anchor': 'middle' }, grp);
           continue;
         }
         const y = laneY(n.string);
@@ -143,9 +150,14 @@ export class TabView {
         }
       }
       const tech = ev.techs.filter((t) => t !== 'kaki' && t !== 'wari').map((t) => TECHNIQUES[t]?.tab).filter(Boolean).join('');
-      const topY = y0 + TOP - 8;
+      const topY = y0 + this.L.top - 8;
       if (tech) el('text', { x: x + w / 2, y: topY, class: 'tech-top', 'text-anchor': 'middle', text: tech }, grp);
-      if (this.options.syllables && ev.shoga) el('text', { x: x + 1, y: y0 + 25, class: 'syllable', text: ev.shoga }, grp);
+      if (this.options.syllables && ev.shoga) {
+        const w2 = ev.shoga.length * 5.6 + 3;
+        const row = this.sylRows[0] <= x ? 0 : this.sylRows[1] <= x ? 1 : 0;
+        this.sylRows[row] = x + w2;
+        el('text', { x: x + 1, y: y0 + 23 + row * 10, class: 'syllable' + (row ? ' alt' : ''), text: ev.shoga }, grp);
+      }
       this.noteEls.set(ev.idx, els);
       // rhythm stems
       const sx = x + w / 2;
@@ -185,7 +197,7 @@ export class TabView {
   beatToXY(beat) {
     const sys = this.systems.find((s) => beat >= s.start - EPS && beat < s.end - EPS) || this.systems[this.systems.length - 1];
     if (!sys) return null;
-    return { x: sys.x0 + (beat - sys.start) * sys.beatPx, y0: sys.y0 + TOP - 6, y1: sys.y0 + TOP + LANE * 13 + 4, sys };
+    return { x: sys.x0 + (beat - sys.start) * sys.beatPx, y0: sys.y0 + this.L.top - 6, y1: sys.y0 + this.L.top + this.L.lane * 13 + 4, sys };
   }
 
   setPlayhead(beat) {

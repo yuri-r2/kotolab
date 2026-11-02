@@ -83,7 +83,7 @@ function loadJSON(key, fallback) {
 function saveJSON(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage blocked */ }
 }
-const prefs = { rtl: false, a4: 440, keepAwake: false, ...loadJSON(PREFS_KEY, {}) };
+const prefs = { rtl: false, a4: 440, keepAwake: false, zoom: 1, ...loadJSON(PREFS_KEY, {}) };
 
 const wake = new ScreenWake({ onChange: renderWake });
 let wakeNotified = false;
@@ -107,28 +107,39 @@ registerUserTunings(userTunings);
 const allSongs = () => [...SONGS, ...userSongs];
 
 // ---------------------------------------------------------------- library
+const openGroups = new Set();
 function renderLibrary() {
   const list = $('songList');
+  const q = ($('songSearch')?.value || '').trim().toLowerCase();
   list.innerHTML = '';
   const groups = new Map();
   for (const s of allSongs()) {
+    const hay = `${s.title} ${s.jp || ''} ${s.composer || ''}`.toLowerCase();
+    if (q && !hay.includes(q)) continue;
     const cat = s.user ? 'My songs' : s.category;
     if (!groups.has(cat)) groups.set(cat, []);
     groups.get(cat).push(s);
   }
+  if (!groups.size) list.innerHTML = '<p class="hint">No songs match. Try a shorter word, or import your own below.</p>';
+  let i = 0;
   for (const [cat, songs] of groups) {
-    const sec = document.createElement('section');
-    sec.className = 'song-group';
-    sec.innerHTML = `<h2>${escapeHtml(cat)}</h2>`;
+    const det = document.createElement('details');
+    det.className = 'song-group';
+    const hasCurrent = songs.some((s) => state.song && state.song.id === s.id);
+    det.open = !!q || hasCurrent || openGroups.has(cat) || (i === 0 && !openGroups.size);
+    if (det.open) openGroups.add(cat);
+    det.addEventListener('toggle', () => { if (det.open) openGroups.add(cat); else openGroups.delete(cat); });
+    det.innerHTML = `<summary>${escapeHtml(cat)} <span class="count">${songs.length}</span></summary>`;
     for (const s of songs) {
       const b = document.createElement('button');
       b.className = 'song-btn';
       b.setAttribute('aria-current', state.song && state.song.id === s.id ? 'true' : 'false');
       b.innerHTML = `${escapeHtml(s.title)}<small>${escapeHtml(s.jp ? s.jp + ' · ' : '')}${escapeHtml(s.mode === 'strings' ? 'koto score' : 'arranged')}</small>`;
       b.addEventListener('click', () => { loadSong(s); closeLibrary(); });
-      sec.appendChild(b);
+      det.appendChild(b);
     }
-    list.appendChild(sec);
+    list.appendChild(det);
+    i++;
   }
 }
 
@@ -369,7 +380,9 @@ function renderKoto() {
 function renderScore() {
   const syl = $('showSyllables').checked;
   const pitches = $('showPitches').checked;
-  for (const v of [tabView, vertView]) v.options = { syllables: syl, pitches, rtl: prefs.rtl };
+  for (const v of [tabView, vertView]) v.options = { syllables: syl, pitches, rtl: prefs.rtl, zoom: prefs.zoom };
+  $('zoomOut').disabled = prefs.zoom <= 0.7;
+  $('zoomIn').disabled = prefs.zoom >= 1.8;
   $('rtlWrap').hidden = state.view !== 'tab';
   $('tabView').hidden = state.view !== 'tab';
   $('vertView').hidden = state.view !== 'vertical';
@@ -568,7 +581,7 @@ function togglePlay() {
 
 function updateSpeedLabel() {
   const pct = Number($('speed').value);
-  $('speedValue').textContent = `${pct}% · ♩=${Math.round((state.song.tempo * pct) / 100)}`;
+  $('speedValue').textContent = `${pct}% ♩${Math.round((state.song.tempo * pct) / 100)}`;
 }
 
 function loopBeats() {
@@ -728,6 +741,52 @@ function demoTuning(id) {
   audio.prepare(open).then(() => {
     open.forEach((p, i) => audio.pluck({ midi: p, when: ctx.currentTime + 0.05 + i * 0.22, dur: 0.6, string: i + 1 }));
   });
+}
+
+// ---------------------------------------------------------------- full screen & zoom
+let fullscreenOn = false;
+
+/** Compact playback bar on phones, short landscape screens and in full screen. */
+function updateTransportLayout(initial = false) {
+  const compact = fullscreenOn || window.innerWidth <= 820 || window.innerHeight <= 500;
+  const t = document.querySelector('.transport');
+  const changed = t.classList.contains('compact') !== compact;
+  t.classList.toggle('compact', compact);
+  if (initial || changed) $('transportMore').open = !compact;
+}
+
+function setZoom(z) {
+  prefs.zoom = Math.round(Math.max(0.7, Math.min(1.8, z)) * 100) / 100;
+  saveJSON(PREFS_KEY, prefs);
+  renderScore();
+}
+
+async function toggleFullscreen() {
+  if (fullscreenOn) { exitFullscreen(); return; }
+  fullscreenOn = true;
+  const area = $('playerArea');
+  area.classList.add('fullscreen');
+  document.body.classList.add('has-fullscreen');
+  $('fullscreenBtn').setAttribute('aria-pressed', 'true');
+  $('fullscreenBtn').setAttribute('aria-label', 'Exit full screen');
+  $('fullscreenBtn').textContent = '✕';
+  updateTransportLayout();
+  // real full screen where the browser allows it (not on iPhone); the fixed
+  // layout above already fills the window either way
+  try { if (area.requestFullscreen && !document.fullscreenElement) await area.requestFullscreen({ navigationUI: 'hide' }); } catch { /* fixed layout only */ }
+  requestAnimationFrame(() => { renderScore(); if (player.position) onTick(player.position); });
+}
+
+function exitFullscreen() {
+  fullscreenOn = false;
+  $('playerArea').classList.remove('fullscreen');
+  document.body.classList.remove('has-fullscreen');
+  $('fullscreenBtn').setAttribute('aria-pressed', 'false');
+  $('fullscreenBtn').setAttribute('aria-label', 'Full screen');
+  $('fullscreenBtn').textContent = '⛶';
+  updateTransportLayout();
+  if (document.fullscreenElement) document.exitFullscreen().catch(() => {});
+  requestAnimationFrame(() => renderScore());
 }
 
 // ---------------------------------------------------------------- custom tunings
@@ -1036,6 +1095,7 @@ function bind() {
   $('showPitches').addEventListener('change', renderScore);
   $('showSyllables').addEventListener('change', renderScore);
   $('fitBridges').addEventListener('click', fitBridges);
+  $('songSearch').addEventListener('input', renderLibrary);
   $('mainTabPlay').addEventListener('click', () => showPanel('play'));
   $('mainTabTune').addEventListener('click', () => showPanel('tune'));
   $('changeTuning').addEventListener('click', () => showPanel('tune'));
@@ -1062,6 +1122,12 @@ function bind() {
   });
   if (prefs.keepAwake) wake.enable();
   renderWake(wake);
+  $('zoomOut').addEventListener('click', () => setZoom(prefs.zoom - 0.15));
+  $('zoomIn').addEventListener('click', () => setZoom(prefs.zoom + 0.15));
+  $('fullscreenBtn').addEventListener('click', toggleFullscreen);
+  document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && fullscreenOn) exitFullscreen(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && fullscreenOn) exitFullscreen(); });
+  updateTransportLayout(true);
   $('rtlToggle').checked = prefs.rtl;
   $('rtlToggle').addEventListener('change', (e) => { prefs.rtl = e.target.checked; saveJSON(PREFS_KEY, prefs); renderScore(); });
   $('a4Select').value = String(prefs.a4);
@@ -1107,7 +1173,8 @@ function bind() {
   let resizeTimer;
   let lastWidth = window.innerWidth;
   window.addEventListener('resize', () => {
-    if (window.innerWidth === lastWidth) return;
+    updateTransportLayout();
+    if (window.innerWidth === lastWidth && !fullscreenOn) return;
     lastWidth = window.innerWidth;
     clearTimeout(resizeTimer);
     resizeTimer = setTimeout(renderScore, 150);

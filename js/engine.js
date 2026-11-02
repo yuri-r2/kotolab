@@ -95,9 +95,16 @@ function eventCombos(ev, open, opts) {
     next.sort((a, b) => a.reduce((s, n) => s + n.cost, 0) - b.reduce((s, n) => s + n.cost, 0));
     combos = next.slice(0, MAX_COMBOS);
   }
-  return combos
+  const valid = combos
     .map((notes) => ({ notes, cost: comboCost(notes), center: center(notes), lh: leftHandStrings(notes, ev) }))
     .filter((c) => Number.isFinite(c.cost));
+  if (valid.length) return valid;
+  // no way to play every note of this chord on separate strings (e.g. two
+  // notes that only one string can reach): keep the top note, drop the rest
+  return per[0].map((cand) => {
+    const notes = [cand, ...per.slice(1).map((c) => ({ string: null, press: 0, pitch: c[0].pitch, cost: OMIT_COST / 4, omitted: true, shifted: 0 }))];
+    return { notes, cost: comboCost(notes), center: center(notes), lh: leftHandStrings(notes, ev) };
+  });
 }
 
 function center(notes) {

@@ -16,6 +16,7 @@ movable bridges, string-name notation and left-hand presses.
 - **Two notations.** A tablature view (left to right, or right to left like koto scores) with 13 lanes, press triangles, finger numbers and rhythm stems, and a traditional vertical score (縦譜) in the Ikuta style: kanji string names, beat squares, 2/3 finger marks, オ/ヲ/ヒ/ツ/ユ technique marks and kuchi-shōga.
 - **An animated koto.** Bridges slide into place when you change tuning; strings light up, with the plucking finger and the left-hand press shown as you play. Click a string to hear it.
 - **Keep screen on.** A button in the top bar stops the screen from dimming or locking while KotoLab is open (Screen Wake Lock API), so the score and tuner stay visible while your hands are on the strings. The choice is remembered.
+- **Full-screen tablature.** One tap fills the screen with the score and a compact playback bar (real full screen where the browser allows it, a full-window view on iPhone). A−/A+ resize the tablature; on phones the tab switches to a tighter layout with two bars per line, and lyrics that would collide are staggered onto two rows.
 - **Practice tools.** Play/pause, speed from 25 % to 150 %, loop any bars, metronome, count-in, and note-by-note stepping (← →).
 - **Explanations.** Click any note to see how to play it — string, open pitch, press, finger and technique, with step-by-step instructions. The *Learn the basics* panel covers the instrument, tunings, reading scores, fingers and every technique, each with a sound demo.
 - **Bring your own songs.** Import a MIDI file (arranged automatically), a Humdrum `**koto` file, or write one in the simple text format in the editor. Songs are saved in your browser and can be exported as `.json`.
@@ -25,6 +26,8 @@ movable bridges, string-name notation and left-hand presses.
 Classical & traditional: *Sakura Sakura* (hira-jōshi, full), *Rokudan no
 Shirabe* (opening of the first dan, with hiki-iro, kaki-zume, wari-zume and
 ato-oshi), *Akatonbo*, *Kōjō no Tsuki* (opening).
+
+Meiji-era songs: 28 popular songs from *Japanese Popular Music* (Nagai & Kobatake, Osaka 1892), several originally accompanied by koto — including *Kurokami*, *Echigo-jishi*, *Oedo Nihonbashi*, *Kappore* and *Dodoitsu* — converted from David Huron's Humdrum encoding with `scripts/import-nippon.mjs`. The library has a search box and collapsible groups.
 
 Popular & folk (public domain): *Twinkle Twinkle*, *Ode to Joy*, *Amazing
 Grace*, *Greensleeves*, *Silent Night*, *Happy Birthday*, *Für Elise* (theme),
