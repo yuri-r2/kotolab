@@ -723,8 +723,8 @@ function selectTuning(id) {
   renderAdvisor();
 }
 
-const PITCH_MIN = 40; // E2
-const PITCH_MAX = 86; // D6
+const PITCH_MIN = 36; // C2
+const PITCH_MAX = 96; // C7
 const ct = { editing: null, pitches: [] };
 let ctKoto = null;
 

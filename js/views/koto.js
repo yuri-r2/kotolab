@@ -15,8 +15,11 @@ const Y0 = 44;
 const DY = 15;
 
 export function bridgeX(pitch) {
+  // below G3 the real spacing would run off the instrument, so very low
+  // custom pitches step down evenly toward the tail instead
+  if (pitch < 55) return bridgeX(55) - (55 - pitch) * 5.5;
   const frac = Math.pow(2, (-(pitch - 52) / 12) * 0.62);
-  return HEAD - (HEAD - TAIL - 50) * frac;
+  return Math.min(HEAD - 30, HEAD - (HEAD - TAIL - 50) * frac);
 }
 
 let instances = 0;

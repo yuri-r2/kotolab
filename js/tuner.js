@@ -1,5 +1,5 @@
 // Microphone tuner: autocorrelation pitch detection with parabolic
-// interpolation, tuned for the koto's range (about G2–C6).
+// interpolation, covering C2–D7 so custom tunings and presses are heard.
 
 export class Tuner {
   constructor(audio) {
@@ -55,7 +55,7 @@ export class Tuner {
 }
 
 /** Returns frequency in Hz, or null when there is no clear pitch. */
-export function detectPitch(buf, sampleRate, { minHz = 90, maxHz = 1400 } = {}) {
+export function detectPitch(buf, sampleRate, { minHz = 60, maxHz = 2400 } = {}) {
   const n = buf.length;
   let rms = 0;
   for (let i = 0; i < n; i++) rms += buf[i] * buf[i];

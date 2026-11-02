@@ -29,7 +29,7 @@ test('no steps when the koto is already in the target tuning', () => {
 
 test('pitch detection finds a plucked-string-like tone within a few cents', () => {
   const sr = 48000;
-  for (const f of [196, 293.66, 440, 880]) {
+  for (const f of [65.41, 196, 293.66, 440, 880, 1760, 2093]) {
     const buf = new Float32Array(2048);
     for (let i = 0; i < buf.length; i++) {
       const t = i / sr;
