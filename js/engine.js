@@ -15,6 +15,19 @@
 import { STRING_NAMES, BRIDGE_RANGE, hiraPitches, pitchName } from './tunings.js';
 
 export const PRESS_COST = [0, 1.6, 2.2, 7];
+
+/** Five learning levels from the difficulty score (1–10). */
+export const LEVEL_TIERS = [
+  { number: 1, name: 'First pieces', max: 2.6, about: 'Open strings or almost; slow and steady.' },
+  { number: 2, name: 'Beginner', max: 3.4, about: 'A few presses and quicker notes.' },
+  { number: 3, name: 'Intermediate', max: 4.4, about: 'Regular presses, techniques such as kaki-zume and after-presses.' },
+  { number: 4, name: 'Upper intermediate', max: 5.4, about: 'Busy left hand, fast passages and leaps.' },
+  { number: 5, name: 'Advanced', max: 99, about: 'Chromatic lines, many presses at speed.' },
+];
+
+export function levelFor(difficulty) {
+  return LEVEL_TIERS.find((l) => difficulty <= l.max) || LEVEL_TIERS[LEVEL_TIERS.length - 1];
+}
 const OCTAVE_SHIFT_COST = 10;
 const OMIT_COST = 40;
 const LH_TECHS = new Set(['ato', 'ato1', 'hiki', 'tsuki', 'yuri', 'hanashi']);
@@ -297,9 +310,21 @@ function analyse(events, combos, o) {
   stats.notesPerSecond = sounding.length / Math.max(dur, 1);
   const pressed = stats.half + stats.whole * 1.3 + stats.triple * 3;
   const pressRatio = stats.notes ? pressed / stats.notes : 0;
-  const difficulty = Math.max(1, Math.min(10, 1 + pressRatio * 8 + stats.notesPerSecond * 0.9 + (stats.shifted + stats.omitted * 3) * 0.3 + issues.filter((i) => i.level === 'warn').length * 0.15));
+  // techniques beyond a plain pluck, two-string strokes and length all add work
+  const TECH_WEIGHT = { kaki: 1, wari: 1.3, hiki: 1, tsuki: 0.8, yuri: 0.8, ato: 1, ato1: 1, hanashi: 1, sukui: 0.5, suri: 1, keshi: 0.3, left: 0.6 };
+  const techLoad = sounding.reduce((sum, e) => sum + e.techs.reduce((a, t) => a + (TECH_WEIGHT[t] || 0), 0), 0);
+  const chords = sounding.filter((e) => e.notes.filter((n) => n.string).length > 1).length;
+  const techRatio = sounding.length ? techLoad / sounding.length : 0;
+  const chordRatio = sounding.length ? chords / sounding.length : 0;
+  const bars = sounding.length ? (sounding[sounding.length - 1].t + sounding[sounding.length - 1].d) / bb : 0;
+  stats.techniques = Math.round(techLoad);
+  stats.chords = chords;
+  const difficulty = Math.max(1, Math.min(10, 1 + pressRatio * 8 + stats.notesPerSecond * 0.9 + techRatio * 5 + chordRatio * 1.5 + Math.min(1, bars / 60) * 0.6 +
+    (stats.shifted + stats.omitted * 3) * 0.3 + issues.filter((i) => i.level === 'warn').length * 0.15));
   stats.difficulty = Math.round(difficulty * 10) / 10;
-  stats.level = difficulty <= 3.2 ? 'Beginner' : difficulty <= 6 ? 'Intermediate' : 'Advanced';
+  const lv = levelFor(stats.difficulty);
+  stats.levelNumber = lv.number;
+  stats.level = lv.name;
   return { stats, issues };
 }
 

@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=45aa2fe9">
+  <link rel="stylesheet" href="css/style.css?v=5b0c6f49">
 </head>
 <body>
   <header class="topbar">
@@ -26,6 +26,10 @@
     <aside class="library" id="library" aria-label="Song library">
       <div class="library-scroll">
         <label class="song-search"><span class="sr-only">Find a song</span><input type="search" id="songSearch" placeholder="Find a song…" autocomplete="off"></label>
+        <div class="lib-order" role="group" aria-label="Order songs by">
+          <button id="orderLevel" aria-pressed="true">By level</button>
+          <button id="orderCollection" aria-pressed="false">By collection</button>
+        </div>
         <div id="songList"></div>
         <section class="import">
           <h2>Add a song</h2>
@@ -368,15 +372,18 @@ rq         quarter rest            q.  dotted       e3  triplet eighth
   <script type="importmap">
 {
   "imports": {
-    "./js/app.js": "./js/app.js?v=f7240f36",
+    "./js/app.js": "./js/app.js?v=51991645",
     "./js/audio.js": "./js/audio.js?v=0cbca01d",
-    "./js/engine.js": "./js/engine.js?v=bad532d9",
+    "./js/difficulty.js": "./js/difficulty.js?v=5e406908",
+    "./js/engine.js": "./js/engine.js?v=1c53d51f",
     "./js/guide.js": "./js/guide.js?v=7c2d6629",
     "./js/importers.js": "./js/importers.js?v=7052aaed",
     "./js/notation.js": "./js/notation.js?v=fda80ddf",
     "./js/player.js": "./js/player.js?v=bb5d2d25",
-    "./js/songs-meiji.js": "./js/songs-meiji.js?v=c15fc6d2",
-    "./js/songs.js": "./js/songs.js?v=93f428b0",
+    "./js/song-levels.js": "./js/song-levels.js?v=926f475e",
+    "./js/songs-koto.js": "./js/songs-koto.js?v=58e4635e",
+    "./js/songs-meiji.js": "./js/songs-meiji.js?v=28c93617",
+    "./js/songs.js": "./js/songs.js?v=27b801c7",
     "./js/techniques.js": "./js/techniques.js?v=3523b293",
     "./js/tuner.js": "./js/tuner.js?v=ed7b2744",
     "./js/tunings.js": "./js/tunings.js?v=dce082bb",
@@ -389,6 +396,6 @@ rq         quarter rest            q.  dotted       e3  triplet eighth
   }
 }
   </script>
-  <script type="module" src="js/app.js?v=f7240f36"></script>
+  <script type="module" src="js/app.js?v=51991645"></script>
 </body>
 </html>

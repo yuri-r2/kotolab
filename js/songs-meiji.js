@@ -23,7 +23,7 @@ export const MEIJI_SONGS = [
   },
   {
     "id": "meiji-02",
-    "title": "Toka Ebisu",
+    "title": "Tōka Ebisu",
     "jp": "十日戎",
     "composer": "Traditional (Meiji-era transcription, 1892)",
     "category": "Meiji-era songs (1892)",
@@ -59,7 +59,7 @@ export const MEIJI_SONGS = [
   },
   {
     "id": "meiji-04",
-    "title": "Suiryo Bushi",
+    "title": "Suiryō-bushi",
     "jp": "",
     "composer": "Traditional (Meiji-era transcription, 1892)",
     "category": "Meiji-era songs (1892)",
@@ -77,7 +77,7 @@ export const MEIJI_SONGS = [
   },
   {
     "id": "meiji-05",
-    "title": "Riukiu Bushi",
+    "title": "Ryūkyū-bushi",
     "jp": "琉球節",
     "composer": "Traditional (Meiji-era transcription, 1892)",
     "category": "Meiji-era songs (1892)",
@@ -203,7 +203,7 @@ export const MEIJI_SONGS = [
   },
   {
     "id": "meiji-12",
-    "title": "Kuro Kami",
+    "title": "Kurokami",
     "jp": "黒髪",
     "composer": "Traditional (Meiji-era transcription, 1892)",
     "category": "Meiji-era songs (1892)",
@@ -311,7 +311,7 @@ export const MEIJI_SONGS = [
   },
   {
     "id": "meiji-18",
-    "title": "Otsue Bushi",
+    "title": "Ōtsue-bushi",
     "jp": "大津絵節",
     "composer": "Traditional (Meiji-era transcription, 1892)",
     "category": "Meiji-era songs (1892)",
@@ -347,7 +347,7 @@ export const MEIJI_SONGS = [
   },
   {
     "id": "meiji-20",
-    "title": "Iyo Bushi",
+    "title": "Iyo-bushi",
     "jp": "伊予節",
     "composer": "Traditional (Meiji-era transcription, 1892)",
     "category": "Meiji-era songs (1892)",
@@ -455,7 +455,7 @@ export const MEIJI_SONGS = [
   },
   {
     "id": "meiji-26",
-    "title": "Echigo Jishi",
+    "title": "Echigo-jishi",
     "jp": "越後獅子",
     "composer": "Traditional (Meiji-era transcription, 1892)",
     "category": "Meiji-era songs (1892)",
@@ -473,7 +473,7 @@ export const MEIJI_SONGS = [
   },
   {
     "id": "meiji-27",
-    "title": "Fuku Ju So",
+    "title": "Fukujusō",
     "jp": "福寿草",
     "composer": "Traditional (Meiji-era transcription, 1892)",
     "category": "Meiji-era songs (1892)",
@@ -491,7 +491,7 @@ export const MEIJI_SONGS = [
   },
   {
     "id": "meiji-28",
-    "title": "Ukiyo Bushi",
+    "title": "Ukiyo-bushi",
     "jp": "浮世節",
     "composer": "Traditional (Meiji-era transcription, 1892)",
     "category": "Meiji-era songs (1892)",

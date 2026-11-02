@@ -167,3 +167,24 @@ test('custom tunings keep their notes and work everywhere presets do', async () 
   registerUserTunings([]);
   assert.equal(gt('user-test'), null);
 });
+
+test('every library song has a precomputed level (run scripts/levels.mjs after adding songs)', async () => {
+  const { SONG_LEVELS } = await import('../js/song-levels.js');
+  for (const s of SONGS) {
+    assert.ok(SONG_LEVELS[s.id], `${s.id} has no level`);
+    assert.ok(SONG_LEVELS[s.id].level >= 1 && SONG_LEVELS[s.id].level <= 5);
+  }
+});
+
+test('koto arrangements are written in strings and keep them in their own tuning', () => {
+  const kotoSongs = SONGS.filter((s) => s.category === 'Koto arrangements');
+  assert.ok(kotoSongs.length >= 8);
+  for (const s of kotoSongs) {
+    assert.equal(s.mode, 'strings');
+    const res = fitArrangement(prep(s), { open: getTuning(s.tuning).strings, tempo: s.tempo, keepStrings: true });
+    for (const ev of res.events) for (const n of ev.notes) {
+      assert.equal(n.string, n.authoredString, `${s.id}: string kept`);
+      assert.ok(n.press <= 2);
+    }
+  }
+});

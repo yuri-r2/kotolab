@@ -7,6 +7,7 @@
 //   transposition for whatever tuning you select ('auto' = best fit).
 
 import { MEIJI_SONGS } from './songs-meiji.js';
+import { KOTO_SONGS } from './songs-koto.js';
 
 const BASE_SONGS = [
   {
@@ -215,4 +216,4 @@ C5q. A4e A4q F4q | G4q. F4e G4q A4q | F4q. D4e D4q C4q | F4h. rq |`,
   },
 ];
 
-export const SONGS = [...BASE_SONGS, ...MEIJI_SONGS];
+export const SONGS = [...BASE_SONGS, ...KOTO_SONGS, ...MEIJI_SONGS];

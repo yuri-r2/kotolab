@@ -11,6 +11,9 @@ import { SONGS } from './songs.js';
 import { readMidi, midiToEvents, parseHumdrumKoto } from './importers.js';
 import { TuningGuide } from './guide.js';
 import { ScreenWake } from './wakelock.js';
+import { SONG_LEVELS } from './song-levels.js';
+import { songDifficulty } from './difficulty.js';
+import { LEVEL_TIERS } from './engine.js';
 
 const $ = (id) => document.getElementById(id);
 const STORE_KEY = 'kotolab.songs.v1';
@@ -83,7 +86,7 @@ function loadJSON(key, fallback) {
 function saveJSON(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage blocked */ }
 }
-const prefs = { rtl: false, a4: 440, keepAwake: false, zoom: 1, ...loadJSON(PREFS_KEY, {}) };
+const prefs = { rtl: false, a4: 440, keepAwake: false, zoom: 1, libraryOrder: 'level', ...loadJSON(PREFS_KEY, {}) };
 
 const wake = new ScreenWake({ onChange: renderWake });
 let wakeNotified = false;
@@ -108,33 +111,52 @@ const allSongs = () => [...SONGS, ...userSongs];
 
 // ---------------------------------------------------------------- library
 const openGroups = new Set();
+const levelCache = new Map(Object.entries(SONG_LEVELS));
+
+/** Difficulty for any song (precomputed for the library, computed once for your own songs). */
+function levelOf(song) {
+  if (!levelCache.has(song.id)) {
+    try { levelCache.set(song.id, songDifficulty(song)); } catch { levelCache.set(song.id, { difficulty: 5, level: 3 }); }
+  }
+  return levelCache.get(song.id);
+}
+
 function renderLibrary() {
   const list = $('songList');
   const q = ($('songSearch')?.value || '').trim().toLowerCase();
+  const byLevel = prefs.libraryOrder !== 'collection';
+  $('orderLevel').setAttribute('aria-pressed', String(byLevel));
+  $('orderCollection').setAttribute('aria-pressed', String(!byLevel));
   list.innerHTML = '';
   const groups = new Map();
-  for (const s of allSongs()) {
-    const hay = `${s.title} ${s.jp || ''} ${s.composer || ''}`.toLowerCase();
-    if (q && !hay.includes(q)) continue;
-    const cat = s.user ? 'My songs' : s.category;
-    if (!groups.has(cat)) groups.set(cat, []);
-    groups.get(cat).push(s);
+  if (byLevel) for (const tier of LEVEL_TIERS) groups.set(`Level ${tier.number} · ${tier.name}`, []);
+  const songs = allSongs().filter((s) => !q || `${s.title} ${s.jp || ''} ${s.composer || ''} ${s.category || ''}`.toLowerCase().includes(q));
+  for (const s of songs) {
+    const key = byLevel ? (() => { const t = LEVEL_TIERS[(levelOf(s).level || 3) - 1]; return `Level ${t.number} · ${t.name}`; })() : (s.user ? 'My songs' : s.category);
+    if (!groups.has(key)) groups.set(key, []);
+    groups.get(key).push(s);
   }
+  if (byLevel) for (const arr of groups.values()) arr.sort((a, b) => levelOf(a).difficulty - levelOf(b).difficulty);
+  for (const [k, arr] of [...groups]) if (!arr.length) groups.delete(k);
   if (!groups.size) list.innerHTML = '<p class="hint">No songs match. Try a shorter word, or import your own below.</p>';
   let i = 0;
-  for (const [cat, songs] of groups) {
+  for (const [cat, items] of groups) {
     const det = document.createElement('details');
     det.className = 'song-group';
-    const hasCurrent = songs.some((s) => state.song && state.song.id === s.id);
+    const hasCurrent = items.some((s) => state.song && state.song.id === s.id);
     det.open = !!q || hasCurrent || openGroups.has(cat) || (i === 0 && !openGroups.size);
     if (det.open) openGroups.add(cat);
     det.addEventListener('toggle', () => { if (det.open) openGroups.add(cat); else openGroups.delete(cat); });
-    det.innerHTML = `<summary>${escapeHtml(cat)} <span class="count">${songs.length}</span></summary>`;
-    for (const s of songs) {
+    const tier = byLevel ? LEVEL_TIERS.find((t) => cat.startsWith(`Level ${t.number}`)) : null;
+    det.innerHTML = `<summary>${escapeHtml(cat)} <span class="count">${items.length}</span></summary>${tier ? `<p class="group-about">${escapeHtml(tier.about)}</p>` : ''}`;
+    for (const s of items) {
       const b = document.createElement('button');
       b.className = 'song-btn';
       b.setAttribute('aria-current', state.song && state.song.id === s.id ? 'true' : 'false');
-      b.innerHTML = `${escapeHtml(s.title)}<small>${escapeHtml(s.jp ? s.jp + ' · ' : '')}${escapeHtml(s.mode === 'strings' ? 'koto score' : 'arranged')}</small>`;
+      const lv = levelOf(s);
+      const kind = s.mode === 'strings' ? 'koto score' : 'arranged';
+      const where = byLevel ? (s.user ? 'My songs' : s.category) : `Level ${lv.level}`;
+      b.innerHTML = `<span class="song-line"><span>${escapeHtml(s.title)}</span><span class="lv lv${lv.level}" title="Difficulty ${lv.difficulty} of 10">${lv.level}</span></span><small>${escapeHtml(s.jp ? s.jp + ' · ' : '')}${escapeHtml(kind)} · ${escapeHtml(where)}</small>`;
       b.addEventListener('click', () => { loadSong(s); closeLibrary(); });
       det.appendChild(b);
     }
@@ -396,7 +418,7 @@ const activeView = () => (state.view === 'tab' ? tabView : vertView);
 
 function renderPlayability() {
   const { stats, issues } = state.arr;
-  $('diffLevel').textContent = stats.level;
+  $('diffLevel').textContent = `Level ${stats.levelNumber} · ${stats.level}`;
   $('diffScore').textContent = `${stats.difficulty} / 10`;
   $('diffBar').style.width = `${stats.difficulty * 10}%`;
   const cells = [
@@ -951,6 +973,7 @@ function editorApply(save) {
   if (save) {
     if (!song.user) song = { ...song, id: 'user-' + Date.now().toString(36), user: true, category: 'My songs' };
     const i = userSongs.findIndex((s) => s.id === song.id);
+    levelCache.delete(song.id);
     if (i >= 0) userSongs[i] = song; else userSongs.push(song);
     toast(saveUserSongs(userSongs) ? `Saved “${song.title}” to My songs.` : 'Your browser blocked saving; download the .json instead.');
   }
@@ -1096,6 +1119,9 @@ function bind() {
   $('showSyllables').addEventListener('change', renderScore);
   $('fitBridges').addEventListener('click', fitBridges);
   $('songSearch').addEventListener('input', renderLibrary);
+  for (const [id, order] of [['orderLevel', 'level'], ['orderCollection', 'collection']]) {
+    $(id).addEventListener('click', () => { prefs.libraryOrder = order; saveJSON(PREFS_KEY, prefs); openGroups.clear(); renderLibrary(); });
+  }
   $('mainTabPlay').addEventListener('click', () => showPanel('play'));
   $('mainTabTune').addEventListener('click', () => showPanel('tune'));
   $('changeTuning').addEventListener('click', () => showPanel('tune'));

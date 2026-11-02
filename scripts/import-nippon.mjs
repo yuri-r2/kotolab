@@ -136,7 +136,8 @@ const files = readdirSync(dir).filter((f) => /^nippon\d+\.krn$/.test(f)).sort();
 const songs = files.map((f) => {
   const { meta, timeSig, events } = parseFile(readFileSync(join(dir, f), 'utf8'));
   const title = (meta.OTL || f).replace(/\\_/g, '_');
-  const nice = title.replace(/_/g, '').replace(/-/g, ' ');
+  const NICE = { 'Kuro-Kami': 'Kurokami', 'Echigo-Jishi': 'Echigo-jishi', 'Toka-Ebisu': 'Tōka Ebisu', 'O_tsue-Bushi': 'Ōtsue-bushi', 'Iyo-Bushi': 'Iyo-bushi', 'Riukiu-Bushi': 'Ryūkyū-bushi', 'Ukiyo-Bushi': 'Ukiyo-bushi', 'Suiryo-Bushi': 'Suiryō-bushi', 'Fuku-Ju-So': 'Fukujusō', 'Oedo-Nihonbashi': 'Oedo Nihonbashi', 'Na no Ha': 'Na no Ha', 'Gonbe ga Tanemaku': 'Gonbe ga Tanemaku' };
+  const nice = NICE[title] || title.replace(/_/g, '').replace(/-/g, ' ');
   const lows = events.filter((e) => !e.rest).map((e) => e.notes[e.notes.length - 1].pitch);
   return {
     id: 'meiji-' + f.replace(/\D/g, ''),
