@@ -47,12 +47,12 @@ const guideKoto = new KotoView($('guideKoto'), { onPluck: (string) => {
 const guide = new TuningGuide({
   els: {
     intro: $('guideIntro'), fromTuning: $('guideFrom'), fromBase: $('guideFromBase'), target: $('guideTarget'),
-    start: $('guideStart'), startBox: $('guideStartBox'), step: $('guideStep'), kanji: $('stepKanji'), progress: $('stepProgress'),
+    start: $('guideStart'), check: $('guideCheck'), again: $('guideAgain'), chips: $('stepChips'), level: $('micLevel'), startBox: $('guideStartBox'), step: $('guideStep'), kanji: $('stepKanji'), progress: $('stepProgress'),
     what: $('stepWhat'), hint: $('stepHint'), playTarget: $('stepPlay'), playCompare: $('stepCompare'), mic: $('stepMic'),
     needle: $('tunerNeedle'), readout: $('tunerReadout'), back: $('stepBack'), next: $('stepNext'), finish: $('guideFinish'), finishText: $('guideFinishText'),
   },
   audio, kotoView: guideKoto, presets: TUNINGS, bases: BASES,
-  onTuned: (target) => markTuned(target, { quiet: true }),
+  onTuned: (target, { verified } = {}) => markTuned(target, { quiet: true, verified }),
 });
 
 // ---------------------------------------------------------------- storage
@@ -297,14 +297,14 @@ function sameOpen(a, b) {
   return !!a && !!b && a.every((p, i) => p === b[i]);
 }
 
-function markTuned(target = currentTarget(), { quiet = false } = {}) {
-  myKoto = { open: target.open.slice(), label: target.label, base: target.base };
+function markTuned(target = currentTarget(), { quiet = false, verified = false } = {}) {
+  myKoto = { open: target.open.slice(), label: target.label, base: target.base, verified, at: Date.now() };
   saveJSON(KOTO_KEY, myKoto);
   renderTuningStatus();
   if (!quiet) toast(`Noted: your koto is in ${target.label}.`);
 }
 
-function showPanel(panel, { startGuide = false } = {}) {
+function showPanel(panel, { startGuide = false, check = false } = {}) {
   state.panel = panel;
   const play = panel === 'play';
   $('playPanel').hidden = !play;
@@ -320,7 +320,8 @@ function showPanel(panel, { startGuide = false } = {}) {
   }
   if (player.playing) player.pause();
   guide.setTarget(currentTarget(), myKoto);
-  if (startGuide && myKoto) guide.begin();
+  if (check) guide.begin('check');
+  else if (startGuide && myKoto) guide.begin('tune');
 }
 
 function renderKoto() {
@@ -891,6 +892,7 @@ function bind() {
   $('changeTuning').addEventListener('click', () => showPanel('tune'));
   $('retuneGuide').addEventListener('click', () => showPanel('tune', { startGuide: true }));
   $('retuneDone').addEventListener('click', () => markTuned());
+  $('retuneCheck').addEventListener('click', () => showPanel('tune', { check: true }));
   $('guideAlready').addEventListener('click', () => { markTuned(); guide.setTarget(currentTarget(), myKoto); });
   $('guideToPlay').addEventListener('click', () => showPanel('play'));
   $('rtlToggle').checked = prefs.rtl;

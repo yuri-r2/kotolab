@@ -58,7 +58,8 @@
           </div>
           <div class="retune-actions">
             <button class="primary" id="retuneGuide">Walk me through it</button>
-            <button id="retuneDone">My koto is already tuned</button>
+            <button id="retuneCheck">Check it with the microphone</button>
+            <button id="retuneDone">It's already tuned</button>
           </div>
         </div>
 
@@ -159,9 +160,11 @@
             <div class="field"><span>Target</span><strong class="guide-target" id="guideTarget"></strong></div>
             <div class="guide-buttons">
               <button class="primary" id="guideStart">Walk me through it</button>
-              <button id="guideAlready">My koto is already in this tuning</button>
+              <button id="guideCheck">Check my koto with the microphone</button>
+              <button id="guideAlready">Mark as tuned without checking</button>
             </div>
           </div>
+          <div class="step-chips" id="stepChips" hidden aria-label="Strings in this walkthrough"></div>
           <div id="guideKoto" class="guide-koto"></div>
           <div class="guide-step" id="guideStep" hidden>
             <p class="step-progress" id="stepProgress"></p>
@@ -176,6 +179,7 @@
               <button id="stepPlay">Play</button>
               <button id="stepCompare">Play with</button>
               <button id="stepMic" aria-pressed="false">Use microphone</button>
+              <span class="mic-level" title="Microphone input level"><span id="micLevel"></span></span>
             </div>
             <div class="tuner" aria-hidden="true">
               <div class="tuner-scale"><span>−50</span><span>flat</span><span>0</span><span>sharp</span><span>+50</span></div>
@@ -189,7 +193,10 @@
           </div>
           <div class="guide-finish" id="guideFinish" hidden>
             <p id="guideFinishText"></p>
-            <button class="primary" id="guideToPlay">Start playing</button>
+            <div class="guide-buttons">
+              <button class="primary" id="guideToPlay">Start playing</button>
+              <button id="guideAgain">Check all strings again</button>
+            </div>
           </div>
         </section>
 

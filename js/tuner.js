@@ -23,15 +23,21 @@ export class Tuner {
     const loop = () => {
       if (!this.running) return;
       this.analyser.getFloatTimeDomainData(this.buf);
+      let sum = 0;
+      for (let i = 0; i < this.buf.length; i++) sum += this.buf[i] * this.buf[i];
+      const level = Math.min(1, Math.sqrt(sum / this.buf.length) * 8);
       const f = detectPitch(this.buf, ctx.sampleRate);
       if (f) {
+        // a new note (more than ~60 cents away) starts a fresh history
+        const last = this.history[this.history.length - 1];
+        if (last && Math.abs(1200 * Math.log2(f / last)) > 60) this.history = [];
         this.history.push(f);
         if (this.history.length > 5) this.history.shift();
         const sorted = this.history.slice().sort((a, b) => a - b);
-        this.onPitch(sorted[Math.floor(sorted.length / 2)]);
+        this.onPitch(sorted[Math.floor(sorted.length / 2)], level);
       } else {
         this.history = [];
-        this.onPitch(null);
+        this.onPitch(null, level);
       }
       this.timer = setTimeout(loop, 50);
     };

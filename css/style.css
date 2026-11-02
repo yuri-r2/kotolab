@@ -390,3 +390,19 @@ button:disabled { opacity: 0.5; cursor: default; }
   .guide-koto { overflow-x: auto; }
   .guide-koto svg { min-width: 680px; }
 }
+
+/* microphone verification */
+.step-chips { display: flex; flex-wrap: wrap; gap: 6px; margin: 4px 0 10px; }
+.chip-step {
+  min-width: 34px; height: 34px; padding: 0 6px; border-radius: 17px; border: 1px solid var(--rule); background: var(--card);
+  font: 700 15px var(--serif); color: var(--ink-soft); position: relative;
+}
+.chip-step.current { border: 2px solid var(--ink); color: var(--ink); }
+.chip-step.verified { background: var(--ai); border-color: var(--ai); color: #fff; }
+.chip-step.verified::after { content: '✓'; position: absolute; right: -4px; top: -6px; font: 700 11px var(--sans); background: #fff; color: var(--ai); border-radius: 50%; width: 15px; height: 15px; line-height: 15px; border: 1px solid var(--ai); }
+.chip-step.skipped { border-color: var(--beni); color: var(--beni); border-style: dashed; }
+.chip-step.ear { border-color: var(--kin); color: var(--kin); }
+.mic-level { display: inline-block; align-self: center; width: 90px; height: 8px; border-radius: 4px; background: var(--paper-2); border: 1px solid var(--rule); overflow: hidden; }
+.mic-level span { display: block; height: 100%; width: 0; background: var(--ai); transition: width 0.05s linear; }
+.guide-finish.partial { border-color: var(--beni); background: #fbf1ef; }
+.guide-finish .guide-buttons { margin-left: auto; }

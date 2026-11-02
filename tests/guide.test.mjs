@@ -41,3 +41,10 @@ test('pitch detection finds a plucked-string-like tone within a few cents', () =
   }
   assert.equal(detectPitch(new Float32Array(2048), sr), null);
 });
+
+test('check mode visits all 13 strings without moving bridges', async () => {
+  const { planCheckSteps } = await import('../js/guide.js');
+  const steps = planCheckSteps(getTuning('hira').strings);
+  assert.equal(steps.length, 13);
+  assert.ok(steps.every((s) => s.from === s.to && s.check));
+});
