@@ -69,7 +69,8 @@ export class KotoView {
       const pick = el('g', { class: 'kpick', visibility: 'hidden' }, g);
       el('circle', { cx: HEAD - 46, cy: y, r: 6.5, class: 'kpick-dot' }, pick);
       const pickT = el('text', { x: HEAD - 46, y: y + 3.4, class: 'kpick-mark', 'text-anchor': 'middle', text: '' }, pick);
-      el('text', { x: HEAD + 26, y: y + 4.5, class: 'kname', 'text-anchor': 'middle', text: STRING_NAMES[i] }, g);
+      const kn = el('text', { x: HEAD + 26, y: y + 4.5, class: 'kname', 'text-anchor': 'middle', text: STRING_NAMES[i] }, g);
+      kn.dataset.tip = `String ${STRING_NAMES[i]} (${i === 0 ? 'farthest from you' : i === 12 ? 'nearest you' : 'string ' + (i + 1)})`;
       const hit = el('rect', { x: TAIL, y: y - DY / 2, width: HEAD - TAIL + 50, height: DY, class: 'khit', tabindex: 0, role: 'button', 'aria-label': `String ${STRING_NAMES[i]}` }, g);
       hit.addEventListener('pointerdown', (e) => {
         const press = e.altKey ? 2 : e.shiftKey ? 1 : 0;

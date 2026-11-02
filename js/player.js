@@ -14,6 +14,7 @@ export class Player {
     this.onState = onState;
     this.speed = 1;
     this.loop = null;
+    this.stopAt = null; // beat to stop at when playing a selection once
     this.metronome = false;
     this.countIn = false;
     this.playing = false;
@@ -60,7 +61,13 @@ export class Player {
       if (!this.playing) return;
       this.position = this.beatAt(this.audio.now());
       this.onTick && this.onTick(this.position);
-      if (!this.loop && this.position >= this.total + 0.25) { this.stop(true); return; }
+      const endAt = this.stopAt ?? this.total;
+      if (!this.loop && this.position >= endAt + 0.25) {
+        const back = this.stopAt != null ? this.rangeStart : null;
+        this.stop(true);
+        if (back != null) { this.position = back; this.onTick && this.onTick(back); }
+        return;
+      }
       this.raf = requestAnimationFrame(frame);
     };
     this.raf = requestAnimationFrame(frame);
@@ -85,7 +92,7 @@ export class Player {
     while (guard++ < 8) {
       const seg = this.segments[this.segments.length - 1];
       const horizonBeat = seg.beat + (horizon - seg.time) / this.secPerBeat;
-      const end = this.loop ? this.loop.end : this.total;
+      const end = this.loop ? this.loop.end : this.stopAt ?? this.total;
       const upto = Math.min(horizonBeat, end);
       if (upto > this.schedBeat + EPS) this.scheduleRange(this.schedBeat, upto);
       this.schedBeat = Math.max(this.schedBeat, upto);

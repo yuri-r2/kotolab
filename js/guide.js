@@ -58,7 +58,9 @@ export function describeCheck(step) {
 
 /** Steps for checking every string without moving any bridge. */
 export function planCheckSteps(toOpen) {
-  return toOpen.map((to, i) => ({ string: i + 1, from: to, to, partner: null, check: true }));
+  // same order as tuning from scratch (一 first, then 五, 十 …) so each string
+  // can be compared with one that is already right
+  return planTuningSteps(null, toOpen).map((s) => ({ ...s, from: s.to, check: true }));
 }
 
 export function describeMove(step) {
@@ -118,74 +120,34 @@ export class TuningGuide {
     this.ignoreUntil = 0;
     this.micFailed = false;
     this.gauge = new TunerGauge(els.gauge, { tolerance: TOLERANCE_CENTS });
-    els.start.addEventListener('click', () => this.begin('tune'));
     els.check.addEventListener('click', () => this.begin('check'));
+    els.bridges.addEventListener('click', () => this.begin('bridges'));
     els.back.addEventListener('click', () => this.go(this.index - 1));
+    els.exit.addEventListener('click', () => { clearTimeout(this.advanceTimer); this.stopMic(); this.showStart(); });
     els.next.addEventListener('click', () => this.next());
     els.playTarget.addEventListener('click', () => this.playTarget());
     els.playCompare.addEventListener('click', () => this.playCompare());
     els.mic.addEventListener('click', () => this.toggleMic());
     els.again.addEventListener('click', () => this.begin('check'));
     els.micRetry.addEventListener('click', () => this.startMic());
-    els.fromTuning.addEventListener('change', () => this.preview());
-    els.fromBase.addEventListener('change', () => this.preview());
     els.length.addEventListener('change', () => { this.stringLength = clampLength(Number(els.length.value)); els.length.value = this.stringLength; });
     this.stringLength = clampLength(Number(els.length.value) || 170);
   }
 
-  /** target: { open, label, base }; current: saved koto tuning or null */
-  setTarget(target, current) {
+  /** target: { open, label, base } — the tuning the current song needs. */
+  setTarget(target) {
     this.target = target;
-    this.current = current;
-    const sel = this.els.fromTuning;
-    sel.innerHTML = '';
-    const add = (value, text) => { const o = document.createElement('option'); o.value = value; o.textContent = text; sel.appendChild(o); };
-    if (current) add('saved', `As I last tuned it: ${current.label}`);
-    for (const t of this.presets) add(t.id, t.user ? `${t.name} (my tuning)` : `${t.name} ${t.jp}`);
-    add('scratch', 'Not tuned yet (new strings or unsure)');
-    add('nobridges', 'Bridges are off (put away after playing)');
-    sel.value = current ? 'saved' : 'hira';
-    if (!this.els.fromBase.options.length) {
-      for (const b of this.bases) { const o = document.createElement('option'); o.value = b.offset; o.textContent = b.name; this.els.fromBase.appendChild(o); }
-    }
-    this.els.fromBase.value = String(target.base ?? 0);
     this.els.target.textContent = target.label;
     this.stopMic();
     this.showStart();
   }
 
-  fromOpen() {
-    const v = this.els.fromTuning.value;
-    const t = this.presets.find((p) => p.id === v);
-    this.els.fromBase.disabled = v === 'saved' || v === 'scratch' || v === 'nobridges' || !!t?.user;
-    if (v === 'scratch' || v === 'nobridges') return null;
-    if (v === 'saved') return this.current.open;
-    return t.strings.map((p) => p + (t.user ? t.base : Number(this.els.fromBase.value)));
-  }
-
   preview() {
-    const from = this.fromOpen();
-    const steps = planTuningSteps(from, this.target.open);
-    this.koto.setTuning(this.target.open, { changed: steps.map((s) => s.string) });
-    this.koto.setGhost(from);
+    this.koto.setTuning(this.target.open, { changed: [] });
+    this.koto.setGhost(null);
     this.koto.focus(null);
-    const n = steps.length;
-    const noBridges = this.els.fromTuning.value === 'nobridges';
-    this.els.lengthWrap.hidden = !noBridges;
-    this.koto.setBridgesVisible(noBridges ? new Set() : null);
-    if (noBridges) {
-      this.els.start.textContent = 'Set up the bridges and tune all 13 strings';
-      this.els.start.disabled = false;
-      this.els.intro.textContent = 'For each string, pluck it without its bridge so the microphone can measure the bare string. KotoLab then tells you where to stand the bridge, and listens while you fine-tune it.';
-      return;
-    }
-    this.els.start.textContent = n ? (from ? `Walk me through it (${n} string${n > 1 ? 's' : ''})` : 'Tune all 13 strings') : 'Nothing to move';
-    this.els.start.disabled = n === 0;
-    this.els.intro.textContent = n === 0
-      ? `Your koto should already be in ${this.target.label}. Check it with the microphone to be sure.`
-      : from
-        ? `${n} bridge${n > 1 ? 's' : ''} need${n > 1 ? '' : 's'} to move. Dashed outlines show where the bridges are now; the arrow shows where each one goes. The microphone listens as you tune and confirms each string.`
-        : 'String 一 is tuned to a reference pitch first, then every other string against strings already in tune. The microphone confirms each one.';
+    this.koto.setBridgesVisible(null);
+    this.els.intro.textContent = 'Pick how to start. Either way the microphone listens to each string and moves on by itself once it is in tune.';
   }
 
   showStart() {
@@ -198,13 +160,13 @@ export class TuningGuide {
   }
 
   async begin(mode) {
-    if (mode === 'tune' && this.els.fromTuning.value === 'nobridges') mode = 'bridges';
     this.mode = mode;
-    this.steps = (mode === 'check' ? planCheckSteps(this.target.open) : planTuningSteps(this.fromOpen(), this.target.open))
+    this.steps = (mode === 'check' ? planCheckSteps(this.target.open) : planTuningSteps(null, this.target.open))
       .map((s) => ({ ...s, status: 'pending', cents: null, phase: mode === 'bridges' ? 'measure' : 'tune', f0: null, distance: null }));
     this.bareFreqs = [];
     if (!this.steps.length) return;
-    if (mode === 'check') { this.koto.setTuning(this.target.open, { changed: [] }); }
+    this.koto.setTuning(this.target.open, { changed: [] });
+    this.koto.setBridgesVisible(mode === 'bridges' ? new Set() : null);
     this.els.startBox.hidden = true;
     this.els.finish.hidden = true;
     this.renderChips();
@@ -248,7 +210,7 @@ export class TuningGuide {
     e.meter.hidden = false;
     let hint = describeRelation(step.partner);
     if (step.string === 1 && step.from == null) hint = 'String 一 is the reference for every other string, so take your time with it.';
-    if (step.check) hint = 'If the microphone says it is off, slide the bridge as it suggests.';
+    if (step.check) hint = step.partner ? `${describeRelation(step.partner)} If the microphone says it is off, slide the bridge the way it shows.` : 'String 一 is the reference for the others. If the microphone says it is off, slide the bridge the way it shows.';
     e.hint.textContent = hint;
     e.playTarget.textContent = `Play ${pitchName(step.to)}`;
     e.playCompare.hidden = !step.partner;

@@ -9,16 +9,16 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=5b0c6f49">
+  <link rel="stylesheet" href="css/style.css?v=0eda66e5">
 </head>
 <body>
   <header class="topbar">
     <button class="icon-btn only-narrow" id="libraryToggle" aria-label="Show song library" aria-expanded="false">☰</button>
     <a class="brand" href="./" aria-label="KotoLab home"><span class="brand-kanji">箏</span><span class="brand-name">KotoLab</span></a>
     <nav class="top-actions" aria-label="App">
-      <button class="text-btn wake-btn" id="wakeBtn" data-icon="☀" aria-pressed="false" title="Stop the screen from dimming or locking while KotoLab is open"><span class="lbl" id="wakeLbl">Keep screen on</span></button>
-      <button class="text-btn" id="openLearn" data-icon="?" title="Learn the basics"><span class="lbl">Learn the basics</span></button>
-      <button class="text-btn" id="openEditor" data-icon="✎" title="Edit score"><span class="lbl">Edit score</span></button>
+      <button class="text-btn wake-btn" id="wakeBtn" data-icon="☀" aria-pressed="false" data-tip="Keep the screen on"><span class="lbl" id="wakeLbl">Keep screen on</span></button>
+      <button class="text-btn" id="openLearn" data-icon="?" data-tip="How the koto, scores and techniques work"><span class="lbl">Learn the basics</span></button>
+      <button class="text-btn" id="openEditor" data-icon="✎" data-tip="Edit or write a song"><span class="lbl">Edit score</span></button>
     </nav>
   </header>
 
@@ -27,8 +27,8 @@
       <div class="library-scroll">
         <label class="song-search"><span class="sr-only">Find a song</span><input type="search" id="songSearch" placeholder="Find a song…" autocomplete="off"></label>
         <div class="lib-order" role="group" aria-label="Order songs by">
-          <button id="orderLevel" aria-pressed="true">By level</button>
-          <button id="orderCollection" aria-pressed="false">By collection</button>
+          <button id="orderLevel" aria-pressed="true" data-tip="Easiest (1) to hardest (5)">By level</button>
+          <button id="orderCollection" aria-pressed="false" data-tip="Group by collection">By collection</button>
         </div>
         <div id="songList"></div>
         <section class="import">
@@ -53,26 +53,17 @@
 
       <div class="main-tabs" role="tablist" aria-label="Song views">
         <button role="tab" class="main-tab active" id="mainTabPlay" aria-selected="true" aria-controls="playPanel" data-panel="playPanel">Play</button>
-        <button role="tab" class="main-tab" id="mainTabTune" aria-selected="false" aria-controls="tunePanel" data-panel="tunePanel">Tuning <span class="badge" id="tuneBadge" hidden></span></button>
+        <button role="tab" class="main-tab" id="mainTabTune" data-tip="Tuning settings and guided tuner" aria-selected="false" aria-controls="tunePanel" data-panel="tunePanel">Tuning</button>
       </div>
 
       <div id="playPanel" role="tabpanel" aria-labelledby="mainTabPlay">
-        <div class="retune" id="retuneBanner" hidden>
-          <div>
-            <strong id="retuneTitle"></strong>
-            <p id="retuneText"></p>
-          </div>
-          <div class="retune-actions">
-            <button class="primary" id="retuneGuide">Walk me through it</button>
-            <button id="retuneCheck">Check it with the microphone</button>
-            <button id="retuneDone">It's already tuned</button>
-          </div>
-        </div>
 
         <section class="koto-stage" aria-label="Koto">
-          <div class="tuning-line">
+          <div class="tuning-line" id="tuningLine">
             <span>Tuning <strong id="tuneSummary"></strong></span>
+            <button class="link-btn" id="tuneKoto" data-tip="Guided tuner for this song’s tuning">Tune my koto</button>
             <button class="link-btn" id="changeTuning">Change tuning</button>
+            <span class="tuning-changed" id="tuningChanged" hidden>Different tuning from the last song</span>
           </div>
           <div id="kotoView"></div>
           <p class="koto-hint">Click a string to hear it. Shift-click for a half-step press, Alt-click for a whole step. Highlighted bridges have moved from hira-jōshi.</p>
@@ -81,11 +72,11 @@
         <div class="player-area" id="playerArea">
         <section class="transport" aria-label="Playback">
           <div class="transport-main">
-            <button class="play" id="playBtn" aria-label="Play">▶</button>
-            <button class="icon-btn" id="stopBtn" aria-label="Stop">■</button>
-            <button class="icon-btn" id="prevBtn" aria-label="Previous note">⏮</button>
-            <button class="icon-btn" id="nextBtn" aria-label="Next note">⏭</button>
-            <label class="speed">
+            <button class="play" id="playBtn" aria-label="Play" data-tip="Play / pause (Space)">▶</button>
+            <button class="icon-btn" id="stopBtn" aria-label="Stop" data-tip="Stop">■</button>
+            <button class="icon-btn" id="prevBtn" aria-label="Previous note" data-tip="Previous note (←)">⏮</button>
+            <button class="icon-btn" id="nextBtn" aria-label="Next note" data-tip="Next note (→)">⏭</button>
+            <label class="speed" data-tip="Playback speed (♩ = beats per minute)">
               <span>Speed</span>
               <input type="range" id="speed" min="25" max="150" step="5" value="100">
               <output id="speedValue">100% · ♩=66</output>
@@ -94,11 +85,11 @@
           <details class="transport-more" id="transportMore">
             <summary>Practice options</summary>
             <div class="transport-options">
-              <label class="check"><input type="checkbox" id="loopToggle"> Loop bars <output id="loopValue"></output></label>
-              <label class="check"><input type="checkbox" id="metronome"> Metronome</label>
-              <label class="check"><input type="checkbox" id="countIn"> Count in</label>
+              <label class="check" data-tip="Loop the selection or whole song (L)"><input type="checkbox" id="loopToggle"> Loop <output id="loopValue"></output></label>
+              <label class="check" data-tip="Click on every beat"><input type="checkbox" id="metronome"> Metronome</label>
+              <label class="check" data-tip="One bar of clicks before starting"><input type="checkbox" id="countIn"> Count in</label>
               <label class="field compact">
-                <span>Sound</span>
+                <span>Sound <button type="button" class="tip" data-tip="Synth works offline; koto samples are real recordings loaded online." aria-label="About Sound">i</button></span>
                 <select id="soundSelect">
                   <option value="synth">Plucked synth</option>
                   <option value="samples">Koto samples (online)</option>
@@ -110,23 +101,37 @@
 
         <section class="score" aria-label="Score">
           <div class="score-tabs" role="tablist">
-            <button role="tab" class="tab active" id="tabTab" aria-selected="true" data-view="tab">Tablature</button>
-            <button role="tab" class="tab" id="tabVert" aria-selected="false" data-view="vertical">Vertical score 縦譜</button>
+            <button role="tab" class="tab active" id="tabTab" aria-selected="true" data-view="tab" data-tip="One lane per string, 一 at the top">Tablature</button>
+            <button role="tab" class="tab" id="tabVert" aria-selected="false" data-view="vertical" data-tip="Traditional score: top to bottom, right to left">Vertical score 縦譜</button>
             <span class="spacer"></span>
             <div class="zoom" role="group" aria-label="Tablature size">
-              <button class="icon-btn small" id="zoomOut" aria-label="Smaller tablature">A−</button>
-              <button class="icon-btn small" id="zoomIn" aria-label="Larger tablature">A+</button>
+              <button class="icon-btn small" id="zoomOut" aria-label="Smaller tablature" data-tip="Smaller tablature">A−</button>
+              <button class="icon-btn small" id="zoomIn" aria-label="Larger tablature" data-tip="Larger tablature">A+</button>
             </div>
-            <button class="icon-btn fs-btn" id="fullscreenBtn" aria-pressed="false" aria-label="Full screen" title="Full screen">⛶</button>
-            <label class="check" id="rtlWrap"><input type="checkbox" id="rtlToggle"> Right to left</label>
-            <label class="check"><input type="checkbox" id="showPitches"> Pitch names</label>
-            <label class="check"><input type="checkbox" id="showSyllables" checked> <span id="syllableLabel">Lyrics</span></label>
+            <button class="icon-btn fs-btn" id="fullscreenBtn" aria-pressed="false" aria-label="Full screen" data-tip="Full screen (Esc to leave)">⛶</button>
+            <label class="check" id="rtlWrap" data-tip="Read right to left, like koto scores"><input type="checkbox" id="rtlToggle"> Right to left</label>
+            <label class="check" data-tip="Note names instead of string names"><input type="checkbox" id="showPitches"> Pitch names</label>
+            <label class="check" data-tip="Show lyrics or kuchi-shōga (sung syllables)"><input type="checkbox" id="showSyllables" checked> <span id="syllableLabel">Lyrics</span></label>
+          </div>
+          <div class="sel-bar" id="selBar" data-empty="true" aria-live="polite">
+            <p class="sel-empty" id="selEmpty"><span class="pointer-fine">Drag across the tablature to select a passage. Shift-click extends it; double-click selects a bar.</span><span class="pointer-coarse">Press and hold on the tablature, then drag, to select a passage. Tap a bar number to select that bar.</span></p>
+            <div class="sel-tools" id="selTools" hidden>
+              <span class="sel-info" id="selInfo"></span>
+              <button class="sel-btn primary" id="selPlay" data-tip="Play the selection"><span aria-hidden="true">▶</span> Play</button>
+              <button class="sel-btn" id="selLoop" aria-pressed="false" data-tip="Loop the selection (L)"><span aria-hidden="true">⟳</span> Loop</button>
+              <div class="sel-speed" role="group" aria-label="Practice speed">
+                <button class="sel-chip" data-speed="50" data-tip="50 % speed">50%</button>
+                <button class="sel-chip" data-speed="75" data-tip="75 % speed">75%</button>
+                <button class="sel-chip" data-speed="100" data-tip="Full speed">100%</button>
+              </div>
+              <button class="sel-btn icon" id="selClear" aria-label="Clear selection" data-tip="Clear the selection (Esc)">✕</button>
+            </div>
           </div>
           <div class="score-body" id="scoreBody">
             <div id="tabView" class="view"></div>
             <div id="vertView" class="view" hidden></div>
           </div>
-          <p class="score-hint">Click a bar number to loop from that bar, Shift-click another to set the end. Space plays and pauses; ← → step through notes.</p>
+          <p class="score-hint">Keys: Space play/pause · ← → step through notes · Shift + ← → extend the selection · L loop · Esc clear the selection.</p>
         </section>
         </div>
       </div>
@@ -135,20 +140,20 @@
         <section class="arrange" aria-label="Tuning for this song">
           <h2 class="tune-h">Tuning for this song</h2>
           <div class="tuning-actions">
-            <button class="link-btn" id="newTuning">Create a custom tuning</button>
+            <button class="link-btn" id="newTuning" data-tip="Choose the note of each string">Create a custom tuning</button>
             <button class="link-btn" id="editTuning" hidden>Edit this tuning</button>
             <button class="link-btn" id="saveFitted" hidden>Save these bridges as a custom tuning</button>
           </div>
           <label class="field">
-            <span>Tuning</span>
+            <span>Tuning <button type="button" class="tip" data-tip="Where the 13 bridges stand, so which note each open string plays." aria-label="About Tuning">i</button></span>
             <select id="tuningSelect"></select>
           </label>
           <label class="field">
-            <span>String 一 tuned to</span>
+            <span>Key: pitch of string 一 <button type="button" class="tip" data-tip="Pitch of string 一 (farthest from you). Raises or lowers the whole tuning. D is usual." aria-label="About Key">i</button></span>
             <select id="baseSelect"></select>
           </label>
           <div class="field">
-            <span>Transpose</span>
+            <span>Transpose <button type="button" class="tip" data-tip="Moves the song up or down in half steps. “Best fit” picks the easiest." aria-label="About Transpose">i</button></span>
             <div class="stepper">
               <button id="transDown" aria-label="Transpose down">−</button>
               <output id="transValue">0</output>
@@ -157,7 +162,7 @@
             </div>
           </div>
           <label class="field">
-            <span>Deepest press</span>
+            <span>Deepest press <button type="button" class="tip" data-tip="Deepest left-hand press allowed: half step (ヲ) or whole step (オ)." aria-label="About Deepest press">i</button></span>
             <select id="maxPress">
               <option value="1">Half step only (ヲ)</option>
               <option value="2" selected>Whole step (オ)</option>
@@ -165,14 +170,14 @@
             </select>
           </label>
           <label class="field">
-            <span>Reference pitch</span>
+            <span>Reference pitch <button type="button" class="tip" data-tip="Concert pitch. Pianos use 440 Hz; many koto teachers 442 Hz." aria-label="About Reference pitch">i</button></span>
             <select id="a4Select">
               <option value="440">A = 440 Hz</option>
               <option value="442">A = 442 Hz</option>
               <option value="443">A = 443 Hz</option>
             </select>
           </label>
-          <label class="check" id="keepWrap"><input type="checkbox" id="keepStrings" checked> Keep the original string choices</label>
+          <label class="check" id="keepWrap" data-tip="Use the strings the score was written for."><input type="checkbox" id="keepStrings" checked> Keep the original string choices</label>
         </section>
 
 
@@ -180,14 +185,17 @@
           <h2 id="guideTitle">Tune your koto</h2>
           <p class="guide-intro" id="guideIntro"></p>
           <div class="guide-start" id="guideStartBox">
-            <label class="field"><span>Your koto is tuned to now</span><select id="guideFrom"></select></label>
-            <label class="field"><span>with string 一 on</span><select id="guideFromBase"></select></label>
-            <label class="field" id="guideLengthWrap" hidden><span>String length between the fixed bridges (cm)</span><input id="guideLength" type="number" min="100" max="200" step="1" value="170"></label>
-            <div class="field"><span>Target</span><strong class="guide-target" id="guideTarget"></strong></div>
-            <div class="guide-buttons">
-              <button class="primary" id="guideStart">Walk me through it</button>
-              <button id="guideCheck">Check my koto with the microphone</button>
-              <button id="guideAlready">Mark as tuned without checking</button>
+            <div class="guide-target-line"><span>This song needs</span> <strong class="guide-target" id="guideTarget"></strong></div>
+            <div class="guide-choices">
+              <div class="guide-choice">
+                <button class="primary" id="guideCheck">Tune or check my koto</button>
+                <p>Bridges already on: pluck each string and the microphone tells you which way to slide its bridge, then confirms it.</p>
+              </div>
+              <div class="guide-choice">
+                <button id="guideBridges">Set up from scratch (bridges off)</button>
+                <p>Bridges put away: KotoLab measures each bare string, shows where its bridge goes, then checks it.</p>
+                <label class="field" id="guideLengthWrap"><span>String length (cm) <button type="button" class="tip" data-tip="String length between the two fixed end bridges, used to place each bridge." aria-label="About String length">i</button></span><input id="guideLength" type="number" min="100" max="200" step="1" value="170"></label>
+              </div>
             </div>
           </div>
           <div class="step-chips" id="stepChips" hidden aria-label="Strings in this walkthrough"></div>
@@ -211,8 +219,8 @@
             <div class="step-tools">
               <button id="stepPlay">Play</button>
               <button id="stepCompare">Play with</button>
-              <button id="stepMic" aria-pressed="false">Use microphone</button>
-              <span class="mic-level" title="Microphone input level"><span id="micLevel"></span></span>
+              <button id="stepMic" aria-pressed="false" data-tip="Microphone on/off. Nothing is recorded or sent.">Use microphone</button>
+              <span class="mic-level" data-tip="Mic level: should jump when you pluck"><span id="micLevel"></span></span>
             </div>
             <div class="mic-alert" id="micAlert" role="alert" hidden>
               <p id="micAlertText"></p>
@@ -221,6 +229,7 @@
             <div class="gauge" id="tunerMeter"><div id="tunerGauge"></div></div>
             <p class="tuner-readout" id="tunerReadout" role="status" aria-live="polite"></p>
             <div class="step-nav">
+              <button class="step-exit" id="stepExit" data-tip="Leave the tuner">Stop tuning</button>
               <button id="stepBack">Back</button>
               <button class="primary" id="stepNext">Next string</button>
             </div>
@@ -237,15 +246,15 @@
 
         <div class="tune-grid">
         <section class="panel">
-          <h2>Tuning advisor</h2>
+          <h2>Tuning advisor <button type="button" class="tip" data-tip="Tunings ranked by how easy this song is in each." aria-label="About Tuning advisor">i</button></h2>
           <p class="muted small">Every tuning, at its best transposition, ranked by how easy this song is to play.</p>
           <ol class="advisor" id="advisor"></ol>
-          <button class="wide-btn" id="fitBridges">Fit the bridges to this song</button>
+          <button class="wide-btn" id="fitBridges" data-tip="Suggests a few bridge moves that make this song easier.">Fit the bridges to this song</button>
           <p class="muted small" id="fitNote"></p>
         </section>
 
         <section class="panel">
-          <h2>Bridge settings</h2>
+          <h2>Bridge settings <button type="button" class="tip" data-tip="Open note of each string. “vs hira”: half steps from the standard hira-jōshi bridge spot." aria-label="About Bridge settings">i</button></h2>
           <table class="bridges" id="bridgeTable"></table>
         </section>
         </div>
@@ -254,7 +263,7 @@
 
     <aside class="side" aria-label="Details">
       <section class="panel" id="playability">
-        <h2>Playability</h2>
+        <h2>Playability <button type="button" class="tip" data-tip="How hard this arrangement is (1–10), from presses, speed, techniques and leaps." aria-label="About Playability">i</button></h2>
         <div class="difficulty">
           <div class="meter"><span id="diffBar"></span></div>
           <p><strong id="diffLevel">Beginner</strong> <span id="diffScore"></span></p>
@@ -344,8 +353,8 @@ rq         quarter rest            q.  dotted       e3  triplet eighth
       <p class="muted">Choose the note for each of the 13 strings. The picture shows where the bridges go; KotoLab warns you if a bridge would sit too far from where that string can sound well.</p>
       <div class="editor-meta">
         <label class="field"><span>Name</span><input id="ctName" maxlength="40" placeholder="My tuning"></label>
-        <label class="field"><span>Start from</span><select id="ctStart"></select></label>
-        <div class="field"><span>All strings</span>
+        <label class="field"><span>Start from <button type="button" class="tip" data-tip="Copy a tuning in, then change what differs" aria-label="About Start from">i</button></span><select id="ctStart"></select></label>
+        <div class="field"><span>All strings <button type="button" class="tip" data-tip="All strings up or down a half step" aria-label="About All strings">i</button></span>
           <div class="stepper">
             <button id="ctDown" aria-label="Lower every string a half step">−</button>
             <output>½ step</output>
@@ -356,7 +365,7 @@ rq         quarter rest            q.  dotted       e3  triplet eighth
       </div>
       <div id="ctKoto" class="ct-koto"></div>
       <table class="ct-table">
-        <thead><tr><th>String</th><th></th><th>Note</th><th></th><th>vs hira</th><th></th></tr></thead>
+        <thead><tr><th>String</th><th></th><th>Note</th><th></th><th>vs hira <button type="button" class="tip" data-tip="Half steps from this bridge’s hira-jōshi spot" aria-label="About vs hira">i</button></th><th></th></tr></thead>
         <tbody id="ctRows"></tbody>
       </table>
       <ul class="issues" id="ctIssues"></ul>
@@ -372,30 +381,31 @@ rq         quarter rest            q.  dotted       e3  triplet eighth
   <script type="importmap">
 {
   "imports": {
-    "./js/app.js": "./js/app.js?v=51991645",
+    "./js/app.js": "./js/app.js?v=1129f2a7",
     "./js/audio.js": "./js/audio.js?v=0cbca01d",
     "./js/difficulty.js": "./js/difficulty.js?v=5e406908",
     "./js/engine.js": "./js/engine.js?v=1c53d51f",
-    "./js/guide.js": "./js/guide.js?v=7c2d6629",
+    "./js/guide.js": "./js/guide.js?v=56010a9c",
     "./js/importers.js": "./js/importers.js?v=7052aaed",
     "./js/notation.js": "./js/notation.js?v=fda80ddf",
-    "./js/player.js": "./js/player.js?v=bb5d2d25",
+    "./js/player.js": "./js/player.js?v=345bd9cb",
     "./js/song-levels.js": "./js/song-levels.js?v=926f475e",
     "./js/songs-koto.js": "./js/songs-koto.js?v=58e4635e",
     "./js/songs-meiji.js": "./js/songs-meiji.js?v=28c93617",
     "./js/songs.js": "./js/songs.js?v=27b801c7",
     "./js/techniques.js": "./js/techniques.js?v=3523b293",
+    "./js/tooltip.js": "./js/tooltip.js?v=05127679",
     "./js/tuner.js": "./js/tuner.js?v=ed7b2744",
     "./js/tunings.js": "./js/tunings.js?v=dce082bb",
     "./js/views/gauge.js": "./js/views/gauge.js?v=0c8fabd8",
-    "./js/views/koto.js": "./js/views/koto.js?v=34f0a0f0",
+    "./js/views/koto.js": "./js/views/koto.js?v=23c99450",
     "./js/views/svg.js": "./js/views/svg.js?v=217d234a",
-    "./js/views/tab.js": "./js/views/tab.js?v=e76baa5e",
-    "./js/views/vertical.js": "./js/views/vertical.js?v=543b0d33",
+    "./js/views/tab.js": "./js/views/tab.js?v=2f6c4d80",
+    "./js/views/vertical.js": "./js/views/vertical.js?v=900c36e2",
     "./js/wakelock.js": "./js/wakelock.js?v=778d819c"
   }
 }
   </script>
-  <script type="module" src="js/app.js?v=51991645"></script>
+  <script type="module" src="js/app.js?v=1129f2a7"></script>
 </body>
 </html>

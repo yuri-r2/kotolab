@@ -44,6 +44,7 @@ export class VerticalView {
     const height = pages.length * (colH + 30) + 10;
     const svg = el('svg', { class: 'vert-svg', width, height, viewBox: `0 0 ${width} ${height}`, role: 'img', 'aria-label': 'Vertical koto score' }, this.container);
     this.svg = svg;
+    this.selLayer = null;
     this.hl = el('rect', { class: 'cell-hl', x: 0, y: 0, width: CELL, height: CELL, visibility: 'hidden' }, svg);
     pages.forEach((page, pi) => {
       const top = pi * (colH + 30) + 22;
@@ -68,6 +69,7 @@ export class VerticalView {
         el('line', { x1: x - 2, x2: x + CELL + 2, y1: y, y2: y, class: 'v-bar' }, svg);
       });
     });
+    this.setSelection(this.selection, { looping: this.looping });
   }
 
   renderCell(svg, m, start, unit, x, y) {
@@ -140,6 +142,24 @@ export class VerticalView {
   }
 
   setLoop() {}
+
+  /** Shade the beat squares inside the selected range. */
+  setSelection(sel, { looping = false } = {}) {
+    this.selection = sel;
+    this.looping = looping;
+    if (!this.svg) return;
+    if (!this.selLayer) this.selLayer = el('g', { class: 'v-sel-layer' }, this.svg);
+    clear(this.selLayer);
+    if (!sel) return;
+    for (const c of this.cells) {
+      const a = Math.max(sel.start, c.start), b = Math.min(sel.end, c.end);
+      if (b <= a + EPS) continue;
+      const unit = c.end - c.start;
+      const y1 = c.y + ((a - c.start) / unit) * CELL;
+      const y2 = c.y + ((b - c.start) / unit) * CELL;
+      el('rect', { x: c.x, y: y1, width: CELL, height: y2 - y1, class: 'v-sel' + (looping ? ' looping' : '') }, this.selLayer);
+    }
+  }
 }
 
 function wave(x, y, h) {

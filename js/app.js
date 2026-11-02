@@ -11,6 +11,7 @@ import { SONGS } from './songs.js';
 import { readMidi, midiToEvents, parseHumdrumKoto } from './importers.js';
 import { TuningGuide } from './guide.js';
 import { ScreenWake } from './wakelock.js';
+import { initTooltips } from './tooltip.js';
 import { SONG_LEVELS } from './song-levels.js';
 import { songDifficulty } from './difficulty.js';
 import { LEVEL_TIERS } from './engine.js';
@@ -18,7 +19,6 @@ import { LEVEL_TIERS } from './engine.js';
 const $ = (id) => document.getElementById(id);
 const STORE_KEY = 'kotolab.songs.v1';
 const PREFS_KEY = 'kotolab.prefs.v1';
-const KOTO_KEY = 'kotolab.myKoto.v1';
 const TUNING_KEY = 'kotolab.tunings.v1';
 const EPS = 1e-6;
 
@@ -36,14 +36,15 @@ const state = {
   view: 'tab',
   arr: null,
   selected: null,
-  loopBars: null,
+  selection: null,
+  loopOn: false,
   panel: 'play',
 };
 
 const audio = new KotoAudio();
 const kotoView = new KotoView($('kotoView'), { onPluck: pluckString });
-const tabView = new TabView($('tabView'), { onSelect: selectEvent, onBar: setLoopBar });
-const vertView = new VerticalView($('vertView'), { onSelect: selectEvent, onBar: setLoopBar });
+const tabView = new TabView($('tabView'), { onSelect: selectEvent, onBar: selectBar, onRange: onRangeSelected, onSeek: seekTo, scrollBox: $('scoreBody') });
+const vertView = new VerticalView($('vertView'), { onSelect: selectEvent, onBar: selectBar });
 const player = new Player(audio, { onTick, onState });
 const guideKoto = new KotoView($('guideKoto'), { onPluck: (string) => {
   const p = guide.target?.open[string - 1];
@@ -51,15 +52,15 @@ const guideKoto = new KotoView($('guideKoto'), { onPluck: (string) => {
 } });
 const guide = new TuningGuide({
   els: {
-    intro: $('guideIntro'), fromTuning: $('guideFrom'), fromBase: $('guideFromBase'), target: $('guideTarget'),
-    start: $('guideStart'), check: $('guideCheck'), again: $('guideAgain'), chips: $('stepChips'), level: $('micLevel'), startBox: $('guideStartBox'), step: $('guideStep'), kanji: $('stepKanji'), progress: $('stepProgress'),
+    intro: $('guideIntro'), target: $('guideTarget'), bridges: $('guideBridges'),
+    check: $('guideCheck'), again: $('guideAgain'), chips: $('stepChips'), level: $('micLevel'), startBox: $('guideStartBox'), step: $('guideStep'), kanji: $('stepKanji'), progress: $('stepProgress'),
     what: $('stepWhat'), hint: $('stepHint'), playTarget: $('stepPlay'), playCompare: $('stepCompare'), mic: $('stepMic'),
     length: $('guideLength'), lengthWrap: $('guideLengthWrap'), place: $('stepPlace'), meter: $('tunerMeter'), placeMarker: $('placeMarker'), placeLabel: $('placeLabel'),
     micAlert: $('micAlert'), micAlertText: $('micAlertText'), micRetry: $('micRetry'),
-    gauge: $('tunerGauge'), readout: $('tunerReadout'), back: $('stepBack'), next: $('stepNext'), finish: $('guideFinish'), finishText: $('guideFinishText'),
+    gauge: $('tunerGauge'), readout: $('tunerReadout'), back: $('stepBack'), exit: $('stepExit'), next: $('stepNext'), finish: $('guideFinish'), finishText: $('guideFinishText'),
   },
   audio, kotoView: guideKoto, presets: TUNINGS, bases: BASES,
-  onTuned: (target, { verified } = {}) => markTuned(target, { quiet: true, verified }),
+  onTuned: (target, { verified } = {}) => { if (verified) toast(`Your koto is in ${target.label}.`); },
 });
 
 // ---------------------------------------------------------------- storage
@@ -104,7 +105,6 @@ function renderWake(w) {
   if (w.active) wakeNotified = false;
 }
 // how the player's own koto is tuned right now: { open: number[13], label, base }
-let myKoto = loadJSON(KOTO_KEY, null);
 let userTunings = loadJSON(TUNING_KEY, []).filter((t) => Array.isArray(t.strings) && t.strings.length === 13);
 registerUserTunings(userTunings);
 const allSongs = () => [...SONGS, ...userSongs];
@@ -156,7 +156,7 @@ function renderLibrary() {
       const lv = levelOf(s);
       const kind = s.mode === 'strings' ? 'koto score' : 'arranged';
       const where = byLevel ? (s.user ? 'My songs' : s.category) : `Level ${lv.level}`;
-      b.innerHTML = `<span class="song-line"><span>${escapeHtml(s.title)}</span><span class="lv lv${lv.level}" title="Difficulty ${lv.difficulty} of 10">${lv.level}</span></span><small>${escapeHtml(s.jp ? s.jp + ' · ' : '')}${escapeHtml(kind)} · ${escapeHtml(where)}</small>`;
+      b.innerHTML = `<span class="song-line"><span>${escapeHtml(s.title)}</span><span class="lv lv${lv.level}" data-tip="Level ${lv.level} of 5 · difficulty ${lv.difficulty} of 10">${lv.level}</span></span><small>${escapeHtml(s.jp ? s.jp + ' · ' : '')}${escapeHtml(kind)} · ${escapeHtml(where)}</small>`;
       b.addEventListener('click', () => { loadSong(s); closeLibrary(); });
       det.appendChild(b);
     }
@@ -189,10 +189,18 @@ function loadSong(song, { keepSettings = false } = {}) {
     return;
   }
   state.song = song;
+  state.songChanged = true;
   state.srcEvents = evs;
   state.selected = null;
-  state.loopBars = null;
+  state.selection = null;
+  state.loopOn = false;
+  tabView.selection = null;
+  vertView.selection = null;
+  player.stopAt = null;
+  player.rangeStart = null;
   $('loopToggle').checked = false;
+  $('loopValue').textContent = '';
+  renderSelectionBar();
   player.loop = null;
   if (!keepSettings) {
     state.base = song.base || 0;
@@ -329,49 +337,24 @@ function currentTarget() {
   return { open: state.arr.open.slice(), label: tuningLabel(), base: state.base };
 }
 
-function retuneDiff() {
-  if (!myKoto) return null;
-  return state.arr.open.map((p, i) => ({ string: i + 1, from: myKoto.open[i], to: p })).filter((d) => d.from !== d.to);
-}
+let lastTuningKey = null;
 
+/** The quiet tuning line on the Play tab; flags a change from the previous song (this visit only). */
 function renderTuningStatus() {
-  const label = tuningLabel();
-  $('tuneSummary').textContent = label;
-  const diff = retuneDiff();
-  const banner = $('retuneBanner');
-  const badge = $('tuneBadge');
-  if (!myKoto) {
-    banner.hidden = false;
-    $('retuneTitle').textContent = 'Is your koto tuned for this song?';
-    $('retuneText').textContent = `This song is arranged for ${label}. KotoLab can walk you through tuning it, one string at a time.`;
-    badge.hidden = true;
-  } else if (diff.length) {
-    banner.hidden = false;
-    $('retuneTitle').textContent = `Retune ${diff.length} string${diff.length > 1 ? 's' : ''} for this song`;
-    $('retuneText').textContent = `Your koto is in ${myKoto.label}; this song needs ${label}: ` +
-      diff.map((d) => `${STRING_NAMES[d.string - 1]} ${pitchName(d.from, { octave: false })}→${pitchName(d.to, { octave: false })}`).join(', ') + '.';
-    badge.hidden = false;
-    badge.textContent = String(diff.length);
-    badge.setAttribute('aria-label', `${diff.length} strings to retune`);
-  } else {
-    banner.hidden = true;
-    badge.hidden = true;
-  }
-  if (state.panel === 'tune' && (guide.index < 0 || !sameOpen(guide.target?.open, state.arr.open))) guide.setTarget(currentTarget(), myKoto);
+  $('tuneSummary').textContent = tuningLabel();
+  const key = state.arr.open.join(',');
+  $('tuningChanged').hidden = !(lastTuningKey && lastTuningKey !== key && state.songChanged);
+  $('tuningLine').classList.toggle('changed', !$('tuningChanged').hidden);
+  state.songChanged = false;
+  lastTuningKey = key;
+  if (state.panel === 'tune' && guide.index < 0 && !sameOpen(guide.target?.open, state.arr.open)) guide.setTarget(currentTarget());
 }
 
 function sameOpen(a, b) {
   return !!a && !!b && a.every((p, i) => p === b[i]);
 }
 
-function markTuned(target = currentTarget(), { quiet = false, verified = false } = {}) {
-  myKoto = { open: target.open.slice(), label: target.label, base: target.base, verified, at: Date.now() };
-  saveJSON(KOTO_KEY, myKoto);
-  renderTuningStatus();
-  if (!quiet) toast(`Noted: your koto is in ${target.label}.`);
-}
-
-function showPanel(panel, { startGuide = false, check = false } = {}) {
+function showPanel(panel, { check = false } = {}) {
   state.panel = panel;
   const play = panel === 'play';
   $('playPanel').hidden = !play;
@@ -386,9 +369,8 @@ function showPanel(panel, { startGuide = false, check = false } = {}) {
     return;
   }
   if (player.playing) player.pause();
-  guide.setTarget(currentTarget(), myKoto);
+  guide.setTarget(currentTarget());
   if (check) guide.begin('check');
-  else if (startGuide && myKoto) guide.begin('tune');
 }
 
 function renderKoto() {
@@ -411,7 +393,7 @@ function renderScore() {
   if (state.view === 'tab') tabView.render(state.arr);
   else vertView.render(state.arr);
   activeView().setSelected(state.selected);
-  activeView().setLoop(loopBeats());
+  activeView().setSelection(state.selection, { looping: state.loopOn });
 }
 
 const activeView = () => (state.view === 'tab' ? tabView : vertView);
@@ -422,14 +404,14 @@ function renderPlayability() {
   $('diffScore').textContent = `${stats.difficulty} / 10`;
   $('diffBar').style.width = `${stats.difficulty * 10}%`;
   const cells = [
-    ['Notes', stats.notes, ''],
-    ['Open strings', stats.open, ''],
-    ['Half presses ヲ', stats.half, 'press'],
-    ['Whole presses オ', stats.whole, 'press'],
-    ['Deeper presses', stats.triple, 'press'],
-    ['Moved octave', stats.shifted + stats.omitted, ''],
+    ['Notes', stats.notes, '', 'Notes plucked, chords counted per string'],
+    ['Open strings', stats.open, '', 'Notes with no left-hand press'],
+    ['Half presses ヲ', stats.half, 'press', 'Left hand presses a half step'],
+    ['Whole presses オ', stats.whole, 'press', 'Left hand presses a whole step (harder)'],
+    ['Deeper presses', stats.triple, 'press', 'Step-and-a-half presses'],
+    ['Moved octave', stats.shifted + stats.omitted, '', 'Notes moved an octave to fit the koto'],
   ];
-  $('stats').innerHTML = cells.map(([k, v, c]) => `<div class="${c}"><dt>${k}</dt><dd>${v}</dd></div>`).join('');
+  $('stats').innerHTML = cells.map(([k, v, c, tip]) => `<div class="${c}" data-tip="${escapeHtml(tip)}" tabindex="0"><dt>${k}</dt><dd>${v}</dd></div>`).join('');
   const ul = $('issues');
   ul.innerHTML = '';
   const tuningName = state.tuningId === 'custom' ? 'these custom bridges' : getTuning(state.tuningId).name;
@@ -447,7 +429,7 @@ function renderPlayability() {
     if (is.bar) {
       const b = document.createElement('button');
       b.textContent = `Bar ${is.bar}`;
-      b.addEventListener('click', () => { setLoopBar(is.bar - 1, false); });
+      b.addEventListener('click', () => { selectBar(is.bar - 1, false); });
       li.appendChild(b);
     }
     li.appendChild(document.createTextNode(is.text));
@@ -594,40 +576,122 @@ function onState(s) {
 }
 
 function togglePlay() {
-  if (player.playing) player.pause();
-  else {
-    const from = state.selected != null && !player.position ? state.arr.events[state.selected].t : player.position;
-    player.play(from);
-  }
+  if (player.playing) { player.pause(); return; }
+  const sel = state.selection;
+  let from = state.selected != null && !player.position ? state.arr.events[state.selected].t : player.position;
+  // with a passage selected, Play plays that passage (as in Guitar Pro)
+  if (sel && (from < sel.start - EPS || from >= sel.end - EPS)) from = sel.start;
+  player.play(from);
 }
 
 function updateSpeedLabel() {
   const pct = Number($('speed').value);
   $('speedValue').textContent = `${pct}% ♩${Math.round((state.song.tempo * pct) / 100)}`;
+  document.querySelectorAll('.sel-chip').forEach((c) => c.setAttribute('aria-pressed', String(Number(c.dataset.speed) === pct)));
 }
 
-function loopBeats() {
-  if (!state.loopBars || !$('loopToggle').checked) return null;
+function setSpeedPercent(pct) {
+  $('speed').value = String(pct);
+  player.setSpeed(pct / 100);
+  updateSpeedLabel();
+}
+
+// ---------------------------------------------------------------- selection (Guitar Pro style)
+function barsOf(sel) {
   const bb = barBeats(state.song.timeSig);
-  return { start: state.loopBars[0] * bb, end: (state.loopBars[1] + 1) * bb };
+  return [Math.floor(sel.start / bb + EPS) + 1, Math.floor((sel.end - EPS) / bb) + 1];
 }
 
-function setLoopBar(bar, extend) {
-  if (extend && state.loopBars) {
-    const a = Math.min(state.loopBars[0], bar);
-    const b = Math.max(state.loopBars[0], bar);
-    state.loopBars = [a, b];
-  } else state.loopBars = [bar, bar];
-  $('loopToggle').checked = true;
-  applyLoop();
-  player.seek(state.loopBars[0] * barBeats(state.song.timeSig));
+function setSelection(sel, { final = true, seek = true } = {}) {
+  state.selection = sel && sel.end > sel.start + EPS ? sel : null;
+  tabView.setSelection(state.selection, { looping: state.loopOn });
+  vertView.setSelection(state.selection, { looping: state.loopOn });
+  renderSelectionBar();
+  if (!final) return;
+  applySelectionToPlayer();
+  if (seek && state.selection) {
+    const p = player.playing ? player.position : player.position || 0;
+    if (p < state.selection.start - EPS || p >= state.selection.end - EPS) seekTo(state.selection.start);
+  }
 }
 
-function applyLoop() {
-  player.loop = loopBeats();
-  const lb = state.loopBars;
-  $('loopValue').textContent = lb && $('loopToggle').checked ? (lb[0] === lb[1] ? `${lb[0] + 1}` : `${lb[0] + 1}–${lb[1] + 1}`) : '';
-  activeView().setLoop(player.loop);
+function onRangeSelected(sel, { final }) {
+  setSelection(sel, { final });
+}
+
+function applySelectionToPlayer() {
+  const sel = state.selection;
+  const whole = { start: 0, end: player.total || 0 };
+  player.loop = state.loopOn ? (sel || whole) : null;
+  player.stopAt = !state.loopOn && sel ? sel.end : null;
+  player.rangeStart = sel ? sel.start : null;
+  $('loopToggle').checked = state.loopOn;
+  $('selLoop').setAttribute('aria-pressed', String(state.loopOn));
+  $('loopValue').textContent = state.loopOn && sel ? (() => { const [a, b] = barsOf(sel); return a === b ? `bar ${a}` : `bars ${a}–${b}`; })() : '';
+}
+
+function setLooping(on) {
+  state.loopOn = on;
+  tabView.setSelection(state.selection, { looping: on });
+  vertView.setSelection(state.selection, { looping: on });
+  applySelectionToPlayer();
+  renderSelectionBar();
+}
+
+function renderSelectionBar() {
+  const sel = state.selection;
+  $('selBar').dataset.empty = String(!sel);
+  $('selEmpty').hidden = !!sel;
+  $('selTools').hidden = !sel;
+  if (!sel) return;
+  const [a, b] = barsOf(sel);
+  const bb = barBeats(state.song.timeSig);
+  const whole = Math.abs(sel.start - (a - 1) * bb) < EPS && Math.abs(sel.end - b * bb) < EPS;
+  const notes = state.arr.events.filter((e) => !e.rest && e.t >= sel.start - EPS && e.t < sel.end - EPS).length;
+  const where = a === b ? `Bar ${a}` : `Bars ${a}–${b}`;
+  $('selInfo').textContent = `${where}${whole ? '' : ' (part)'} · ${notes} note${notes === 1 ? '' : 's'}`;
+  $('selLoop').setAttribute('aria-pressed', String(state.loopOn));
+}
+
+/** Bar-number click: select that bar; Shift extends from the current selection. */
+function selectBar(bar, extend) {
+  const bb = barBeats(state.song.timeSig);
+  let start = bar * bb, end = (bar + 1) * bb;
+  if (extend && state.selection) {
+    start = Math.min(start, state.selection.start);
+    end = Math.max(end, state.selection.end);
+  }
+  setSelection({ start, end: Math.min(end, state.arr.measures.length * bb) });
+}
+
+function seekTo(beat) {
+  state.selected = null;
+  activeView().setSelected(null);
+  renderInspector();
+  if (player.playing) player.seek(beat);
+  else {
+    player.position = beat;
+    activeView().setPlayhead(beat);
+  }
+}
+
+/** Shift+arrow: grow or shrink the selection one note at a time. */
+function extendSelection(dir) {
+  const cols = state.arr.events;
+  let sel = state.selection;
+  if (!sel) {
+    const ev = state.selected != null ? state.arr.events[state.selected] : cols.find((e) => e.t >= (player.position || 0) - EPS) || cols[0];
+    sel = { start: ev.t, end: ev.t + ev.d };
+    if (dir < 0) { setSelection(sel); return; }
+  }
+  if (dir > 0) {
+    const next = cols.find((e) => e.t >= sel.end - EPS);
+    if (next) sel = { start: sel.start, end: next.t + next.d };
+  } else {
+    const last = cols.filter((e) => e.t < sel.end - EPS && e.t >= sel.start - EPS);
+    if (last.length > 1) sel = { start: sel.start, end: last[last.length - 1].t };
+  }
+  setSelection(sel, { seek: false });
 }
 
 function playEventNow(ev) {
@@ -1099,11 +1163,16 @@ function bind() {
   $('stopBtn').addEventListener('click', () => player.stop());
   $('prevBtn').addEventListener('click', () => stepNote(-1));
   $('nextBtn').addEventListener('click', () => stepNote(1));
-  $('speed').addEventListener('input', (e) => { player.setSpeed(Number(e.target.value) / 100); updateSpeedLabel(); });
-  $('loopToggle').addEventListener('change', () => {
-    if ($('loopToggle').checked && !state.loopBars) state.loopBars = [0, Math.min(3, state.arr.measures.length - 1)];
-    applyLoop();
+  $('speed').addEventListener('input', (e) => setSpeedPercent(Number(e.target.value)));
+  $('loopToggle').addEventListener('change', (e) => setLooping(e.target.checked));
+  $('selLoop').addEventListener('click', () => setLooping(!state.loopOn));
+  $('selClear').addEventListener('click', () => setSelection(null));
+  $('selPlay').addEventListener('click', () => {
+    if (!state.selection) return;
+    if (player.playing) player.seek(state.selection.start);
+    else player.play(state.selection.start);
   });
+  document.querySelectorAll('.sel-chip').forEach((c) => c.addEventListener('click', () => setSpeedPercent(Number(c.dataset.speed))));
   $('metronome').addEventListener('change', (e) => { player.metronome = e.target.checked; });
   $('countIn').addEventListener('change', (e) => { player.countIn = e.target.checked; });
   $('soundSelect').addEventListener('change', (e) => {
@@ -1125,10 +1194,7 @@ function bind() {
   $('mainTabPlay').addEventListener('click', () => showPanel('play'));
   $('mainTabTune').addEventListener('click', () => showPanel('tune'));
   $('changeTuning').addEventListener('click', () => showPanel('tune'));
-  $('retuneGuide').addEventListener('click', () => showPanel('tune', { startGuide: true }));
-  $('retuneDone').addEventListener('click', () => markTuned());
-  $('retuneCheck').addEventListener('click', () => showPanel('tune', { check: true }));
-  $('guideAlready').addEventListener('click', () => { markTuned(); guide.setTarget(currentTarget(), myKoto); });
+  $('tuneKoto').addEventListener('click', () => showPanel('tune'));
   $('guideToPlay').addEventListener('click', () => showPanel('play'));
   $('wakeBtn').addEventListener('click', async () => {
     if (wake.enabled) {
@@ -1152,7 +1218,7 @@ function bind() {
   $('zoomIn').addEventListener('click', () => setZoom(prefs.zoom + 0.15));
   $('fullscreenBtn').addEventListener('click', toggleFullscreen);
   document.addEventListener('fullscreenchange', () => { if (!document.fullscreenElement && fullscreenOn) exitFullscreen(); });
-  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && fullscreenOn) exitFullscreen(); });
+  document.addEventListener('keydown', (e) => { if (e.key === 'Escape' && fullscreenOn && !state.selection) exitFullscreen(); });
   updateTransportLayout(true);
   $('rtlToggle').checked = prefs.rtl;
   $('rtlToggle').addEventListener('change', (e) => { prefs.rtl = e.target.checked; saveJSON(PREFS_KEY, prefs); renderScore(); });
@@ -1193,8 +1259,12 @@ function bind() {
   document.addEventListener('keydown', (e) => {
     if (e.target.closest('input, textarea, select, dialog[open]') || e.metaKey || e.ctrlKey || state.panel !== 'play') return;
     if (e.code === 'Space' && !e.target.closest('button, [role=button]')) { e.preventDefault(); togglePlay(); }
+    else if (e.key === 'ArrowRight' && e.shiftKey) { e.preventDefault(); extendSelection(1); }
+    else if (e.key === 'ArrowLeft' && e.shiftKey) { e.preventDefault(); extendSelection(-1); }
     else if (e.key === 'ArrowRight') { e.preventDefault(); stepNote(1); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); stepNote(-1); }
+    else if ((e.key === 'l' || e.key === 'L') && !e.altKey) { e.preventDefault(); setLooping(!state.loopOn); }
+    else if (e.key === 'Escape' && state.selection) { e.preventDefault(); e.stopImmediatePropagation(); setSelection(null); }
   });
   let resizeTimer;
   let lastWidth = window.innerWidth;
@@ -1208,6 +1278,7 @@ function bind() {
 }
 
 function start() {
+  initTooltips();
   bind();
   const m = /song=([^&]+)/.exec(location.hash);
   const wanted = m && allSongs().find((s) => s.id === decodeURIComponent(m[1]));
@@ -1217,4 +1288,4 @@ function start() {
 start();
 
 // expose for debugging and tests
-window.kotolab = { state, player, audio, describe, guide, showPanel, wake, get myKoto() { return myKoto; } };
+window.kotolab = { state, player, audio, describe, guide, showPanel, wake };

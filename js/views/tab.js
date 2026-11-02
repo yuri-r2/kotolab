@@ -16,10 +16,16 @@ const ROOMY = { lane: 15, gutter: 62, top: 46, rhythm: 40, minBeat: 46, pitchLab
 const COMPACT = { lane: 13, gutter: 30, top: 40, rhythm: 32, minBeat: 30, pitchLabels: false };
 
 export class TabView {
-  constructor(container, { onSelect, onBar } = {}) {
+  constructor(container, { onSelect, onBar, onRange, onSeek, scrollBox } = {}) {
     this.container = container;
     this.onSelect = onSelect;
     this.onBar = onBar;
+    this.onRange = onRange;
+    this.onSeek = onSeek;
+    this.scrollBox = scrollBox || container;
+    this.selection = null;
+    this.looping = false;
+    this.drag = null;
     this.noteEls = new Map();
     this.systems = [];
     this.options = { pitches: false, syllables: true, rtl: false, zoom: 1 };
@@ -74,7 +80,8 @@ export class TabView {
       for (let s = 1; s <= 13; s++) {
         const y = laneY(s);
         el('line', { x1: this.L.gutter, x2: xEnd, y1: y, y2: y, class: 'lane' + (s === 5 || s === 10 ? ' lane-mark' : '') }, g);
-        el('text', { x: this.L.pitchLabels ? 6 : this.L.gutter / 2 - 2, y: y + 4.5, class: 'lane-name', 'text-anchor': this.L.pitchLabels ? 'start' : 'middle', text: STRING_NAMES[s - 1] }, g);
+        const ln = el('text', { x: this.L.pitchLabels ? 6 : this.L.gutter / 2 - 2, y: y + 4.5, class: 'lane-name', 'text-anchor': this.L.pitchLabels ? 'start' : 'middle', text: STRING_NAMES[s - 1] }, g);
+        ln.dataset.tip = `String ${STRING_NAMES[s - 1]} · open ${pitchName(arr.open[s - 1])}`;
         if (this.L.pitchLabels) el('text', { x: this.L.gutter - 6, y: y + 3.5, class: 'lane-pitch', 'text-anchor': 'end', text: pitchName(arr.open[s - 1], { octave: false }) }, g);
       }
       let x = this.L.gutter;
@@ -97,10 +104,203 @@ export class TabView {
       el('line', { x1: x, x2: x, y1: laneY(1) - 6, y2: laneY(13) + 6, class: 'barline' + (isLast ? ' final' : '') }, g);
     });
     this.playhead = el('line', { class: 'playhead', x1: 0, x2: 0, y1: 0, y2: 0, visibility: 'hidden' }, root);
-    this.loopRect = el('rect', { class: 'loop-band', x: 0, y: 0, width: 0, height: 0, visibility: 'hidden' }, root);
-    root.insertBefore(this.loopRect, root.firstChild);
+    // selection band sits under the notes; its grips sit on top
+    this.selLayer = el('g', { class: 'sel-layer' }, null);
+    root.insertBefore(this.selLayer, root.firstChild);
+    this.gripLayer = el('g', { class: 'sel-grips' }, root);
     if (this.options.rtl) this.mirror(root, width);
+    this.bindPointer(svg);
+    this.setSelection(this.selection, { looping: this.looping });
     void bb;
+  }
+
+  // ------------------------------------------------------------ selection
+
+  /** Convert a pointer event to layout coordinates (handles zoom and RTL). */
+  toLocal(e) {
+    const m = this.root.getScreenCTM();
+    if (!m) return null;
+    const pt = new DOMPoint(e.clientX, e.clientY).matrixTransform(m.inverse());
+    return { x: pt.x, y: pt.y };
+  }
+
+  beatAtPoint(p) {
+    if (!this.systems.length) return 0;
+    let sys = this.systems.find((s) => p.y >= s.y0 && p.y < s.y1);
+    if (!sys) sys = p.y < this.systems[0].y0 ? this.systems[0] : this.systems[this.systems.length - 1];
+    const beat = sys.start + (p.x - sys.x0) / sys.beatPx;
+    return Math.max(sys.start, Math.min(sys.end - 1e-3, beat));
+  }
+
+  /** The note or rest column containing a beat. */
+  columnAt(beat) {
+    const evs = this.arr.events;
+    for (const e of evs) if (beat >= e.t - EPS && beat < e.t + e.d - EPS) return e;
+    return beat < evs[0].t ? evs[0] : evs[evs.length - 1];
+  }
+
+  rangeBetween(a, b) {
+    const ca = this.columnAt(Math.min(a, b));
+    const cb = this.columnAt(Math.max(a, b));
+    return { start: ca.t, end: cb.t + cb.d };
+  }
+
+  barRange(beat) {
+    const m = this.arr.measures.find((x) => beat >= x.start - EPS && beat < x.start + x.beats - EPS) || this.arr.measures[0];
+    return { start: m.start, end: m.start + m.beats };
+  }
+
+  bindPointer(svg) {
+    const DRAG_PX = 5;
+    const LONG_PRESS = 380;
+    svg.addEventListener('pointerdown', (e) => {
+      if (e.button !== 0) return;
+      const grip = e.target.closest('.sel-grip');
+      const p = this.toLocal(e);
+      if (!p) return;
+      const beat = this.beatAtPoint(p);
+      if (grip && this.selection) {
+        // drag one edge of the existing selection
+        e.preventDefault();
+        const which = grip.dataset.edge;
+        const anchor = which === 'start' ? this.selection.end - 1e-3 : this.selection.start;
+        this.drag = { mode: 'select', anchor, pointerId: e.pointerId, moved: true, grip: true };
+        svg.setPointerCapture(e.pointerId);
+        svg.classList.add('selecting');
+        return;
+      }
+      this.drag = { mode: 'pending', anchor: beat, x: e.clientX, y: e.clientY, pointerId: e.pointerId, touch: e.pointerType === 'touch', shift: e.shiftKey, moved: false };
+      if (this.drag.touch) {
+        // on touch, a long press starts a selection; a quick swipe still scrolls
+        this.drag.timer = setTimeout(() => {
+          if (!this.drag || this.drag.mode !== 'pending') return;
+          this.drag.mode = 'select';
+          this.drag.moved = true;
+          try { svg.setPointerCapture(this.drag.pointerId); } catch { /* pointer gone */ }
+          svg.classList.add('selecting');
+          try { navigator.vibrate?.(12); } catch { /* unsupported */ }
+          this.emitRange(this.rangeBetween(beat, beat), false);
+        }, LONG_PRESS);
+      }
+    });
+    svg.addEventListener('pointermove', (e) => {
+      const d = this.drag;
+      if (!d || e.pointerId !== d.pointerId) return;
+      if (d.mode === 'pending') {
+        const far = Math.hypot(e.clientX - d.x, e.clientY - d.y) > (d.touch ? 10 : DRAG_PX);
+        if (!far) return;
+        if (d.touch) { clearTimeout(d.timer); this.drag = null; return; } // it's a scroll
+        d.mode = 'select';
+        d.moved = true;
+        svg.setPointerCapture(e.pointerId);
+        svg.classList.add('selecting');
+      }
+      if (d.mode !== 'select') return;
+      e.preventDefault();
+      d.lastClient = { x: e.clientX, y: e.clientY };
+      const p = this.toLocal(e);
+      if (p) this.emitRange(this.rangeBetween(d.anchor, this.beatAtPoint(p)), false);
+      this.autoScroll(e.clientY);
+    });
+    const end = (e) => {
+      const d = this.drag;
+      if (!d || e.pointerId !== d.pointerId) return;
+      clearTimeout(d.timer);
+      cancelAnimationFrame(this.scrollRaf);
+      this.scrollRaf = null;
+      svg.classList.remove('selecting');
+      this.drag = null;
+      if (d.mode === 'select') {
+        this.suppressClick = true;
+        setTimeout(() => { this.suppressClick = false; }, 0);
+        if (this.selection) this.emitRange(this.selection, true);
+        return;
+      }
+      if (e.type === 'pointercancel') return;
+      // a plain click / tap
+      if (e.target.closest('.bar-num')) return; // bar numbers have their own handler
+      const p = this.toLocal(e);
+      if (!p) return;
+      const beat = this.beatAtPoint(p);
+      if (d.shift && this.selection) {
+        const anchor = this.selection.start;
+        this.suppressClick = true;
+        setTimeout(() => { this.suppressClick = false; }, 0);
+        this.emitRange(this.rangeBetween(anchor, beat), true);
+        return;
+      }
+      if (!e.target.closest('.note-group')) {
+        this.emitRange(null, true);
+        this.onSeek && this.onSeek(this.columnAt(beat).t);
+      }
+    };
+    svg.addEventListener('pointerup', end);
+    svg.addEventListener('pointercancel', end);
+    // stop the note's own click from firing after a drag
+    svg.addEventListener('click', (e) => { if (this.suppressClick) { e.stopPropagation(); e.preventDefault(); } }, true);
+    // keep a long-press drag from scrolling the page on touch screens
+    svg.addEventListener('touchmove', (e) => { if (this.drag && this.drag.mode === 'select') e.preventDefault(); }, { passive: false });
+    svg.addEventListener('dblclick', (e) => {
+      const p = this.toLocal(e);
+      if (!p || e.target.closest('.bar-num')) return;
+      e.preventDefault();
+      this.emitRange(this.barRange(this.beatAtPoint(p)), true);
+    });
+    svg.addEventListener('contextmenu', (e) => { if (this.drag && this.drag.touch) e.preventDefault(); });
+  }
+
+  emitRange(sel, final) {
+    this.setSelection(sel, { looping: this.looping });
+    this.onRange && this.onRange(sel, { final });
+  }
+
+  /** While dragging near the top or bottom of the scroll box, scroll it. */
+  autoScroll(clientY) {
+    const box = this.scrollBox;
+    const r = box.getBoundingClientRect();
+    const zone = 36;
+    const speed = clientY < r.top + zone ? -(r.top + zone - clientY) : clientY > r.bottom - zone ? clientY - (r.bottom - zone) : 0;
+    if (!speed) { cancelAnimationFrame(this.scrollRaf); this.scrollRaf = null; return; }
+    if (this.scrollRaf) return;
+    const tick = () => {
+      if (!this.drag || this.drag.mode !== 'select') { this.scrollRaf = null; return; }
+      box.scrollTop += Math.max(-18, Math.min(18, speed / 2));
+      const c = this.drag.lastClient;
+      if (c) {
+        const p = this.toLocal({ clientX: c.x, clientY: c.y });
+        if (p) this.emitRange(this.rangeBetween(this.drag.anchor, this.beatAtPoint(p)), false);
+      }
+      this.scrollRaf = requestAnimationFrame(tick);
+    };
+    this.scrollRaf = requestAnimationFrame(tick);
+  }
+
+  /** Draw the selection band across every system it covers. */
+  setSelection(sel, { looping = false } = {}) {
+    this.selection = sel;
+    this.looping = looping;
+    if (!this.selLayer) return;
+    clear(this.selLayer);
+    clear(this.gripLayer);
+    if (!sel) return;
+    const L = this.L;
+    const parts = this.systems.filter((s) => sel.end > s.start + EPS && sel.start < s.end - EPS);
+    parts.forEach((s, i) => {
+      const a = Math.max(sel.start, s.start), b = Math.min(sel.end, s.end);
+      const x1 = s.x0 + (a - s.start) * s.beatPx, x2 = s.x0 + (b - s.start) * s.beatPx;
+      const y1 = s.y0 + L.top - 14, y2 = s.y0 + L.top + L.lane * 13 + L.rhythm - 2;
+      el('rect', { x: x1, y: y1, width: Math.max(2, x2 - x1), height: y2 - y1, rx: 4, class: 'sel-band' + (looping ? ' looping' : '') }, this.selLayer);
+      if (i === 0) this.addGrip(x1, y1, 'start');
+      if (i === parts.length - 1) this.addGrip(x2, y2, 'end');
+    });
+  }
+
+  addGrip(x, y, edge) {
+    const g = el('g', { class: 'sel-grip', 'data-edge': edge, role: 'presentation' }, this.gripLayer);
+    const top = edge === 'start';
+    el('line', { x1: x, x2: x, y1: top ? y : y - 30, y2: top ? y + 30 : y, class: 'sel-grip-line' }, g);
+    el('circle', { cx: x, cy: y, r: 11, class: 'sel-grip-hit' }, g);
+    el('circle', { cx: x, cy: y, r: 5.5, class: 'sel-grip-dot' }, g);
   }
 
   mirror(root, width) {
@@ -225,22 +425,7 @@ export class TabView {
     if (idx != null) this.svg?.querySelector(`.note-group[data-idx="${idx}"]`)?.classList.add('selected');
   }
 
-  setLoop(loop) {
-    if (!this.loopRect) return;
-    if (!loop) { this.loopRect.setAttribute('visibility', 'hidden'); return; }
-    // highlight only within the first system that contains the loop start (simple, readable)
-    const a = this.beatToXY(loop.start);
-    const b = this.beatToXY(Math.max(loop.start, loop.end - 1e-3));
-    if (!a || !b) return;
-    if (a.sys === b.sys) {
-      this.loopRect.setAttribute('x', a.x); this.loopRect.setAttribute('width', b.x - a.x + 2);
-      this.loopRect.setAttribute('y', a.sys.y0); this.loopRect.setAttribute('height', a.sys.y1 - a.sys.y0 - 14);
-    } else {
-      this.loopRect.setAttribute('x', a.x); this.loopRect.setAttribute('width', a.sys.x0 + (a.sys.end - a.sys.start) * a.sys.beatPx - a.x);
-      this.loopRect.setAttribute('y', a.sys.y0); this.loopRect.setAttribute('height', b.sys.y1 - a.sys.y0 - 14);
-    }
-    this.loopRect.setAttribute('visibility', 'visible');
-  }
+  setLoop() {}
 }
 
 function isDotted(d) {

@@ -10,14 +10,20 @@ movable bridges, string-name notation and left-hand presses.
 
 - **Tuning-aware arrangements.** Pick a tuning (hira, kumoi, han-kumoi, hon-kumoi, kokin, nakazora, gaku, nogi) and a base pitch. KotoLab maps every note to a string and, when needed, a left-hand press (ヲ half step, オ whole step), choosing the transposition that is easiest to play.
 - **Playability check.** A difficulty score, counts of open strings and presses, and warnings for fast left-hand jumps, double presses in chords and notes that had to move an octave.
-- **Tuning tab with a guided walkthrough.** KotoLab remembers how your koto is tuned. When a song needs a different tuning it tells you which bridges to move, then walks you through them one string at a time: which way to slide the bridge, how far, which already-tuned string to check it against, and reference tones. The microphone verifies every string with a tuner-style gauge (a needle that swings over ±50 cents, a note readout that turns green, a ring that fills while you hold the pitch, then a chime and check mark): it listens while you tune, tells you which way to move the bridge, warns if you plucked the wrong string, and moves on by itself once the string holds within ±5 cents. It can also tune all 13 strings from scratch, set the koto up when the bridges are off (it measures each bare string with the microphone, works out where its bridge goes from the string length, shows the spot, then listens while you fine-tune, and flags strings that are unusually slack or tight), or just check the whole koto without moving anything.
+- **Tuning tab with a guided walkthrough.** The Play tab shows the tuning each song needs (and flags when it differs from the previous song); *Tune* opens the walkthrough, which offers two starts and keeps nothing to track between visits:
+  - *Tune or check my koto* (bridges already on): pluck each string and the microphone checks it, string 一 first and then each string against one already in tune, with reference tones and directions for which way to slide the bridge.
+  - *Set up from scratch (bridges off)*: KotoLab measures each bare string, works out where its bridge goes from the string length, shows the spot, then listens while you fine-tune, and flags strings that are unusually slack or tight.
+
+  Both use a tuner-style gauge (a needle that swings over ±50 cents, a note readout that turns green, a ring that fills while you hold the pitch, then a chime and check mark). It warns if you plucked the wrong string, moves on by itself once the string holds within ±5 cents, and can be stopped at any point.
+- **Guitar Pro-style selections.** Drag across the tablature (or press and hold, then drag, on a touch screen) to select any span of beats; double-click a bar or click its number to select the bar, Shift-click to extend, or use Shift+← → from the keyboard. Handles at either edge adjust the range. The selection bar plays it once, loops it (L), slows it to 50 % or 75 %, or clears it (Esc). The vertical score shades the same range.
+- **Tooltips.** Hover over a control, tap an ⓘ button, or press and hold a control on a phone to see what it means — for example which string "string 一" is, what the key setting moves, or what each playability number counts.
 - **Custom tunings.** Create your own tuning by choosing the note for each of the 13 strings (any note from C2 to C7; start from any preset or the current tuning, nudge strings or the whole koto by half steps, hear each string). KotoLab shows the bridge layout and warns when a bridge would be unrealistically far from its usual place. Saved tunings appear in the tuning list, the advisor and the tuning walkthrough, and fitted bridges can be saved as one.
 - **Tuning advisor.** Ranks every tuning for the current song, and can *fit the bridges* — suggest a few realistic bridge moves that make the song easier.
 - **Two notations.** A tablature view (left to right, or right to left like koto scores) with 13 lanes, press triangles, finger numbers and rhythm stems, and a traditional vertical score (縦譜) in the Ikuta style: kanji string names, beat squares, 2/3 finger marks, オ/ヲ/ヒ/ツ/ユ technique marks and kuchi-shōga.
 - **An animated koto.** Bridges slide into place when you change tuning; strings light up, with the plucking finger and the left-hand press shown as you play. Click a string to hear it.
 - **Keep screen on.** A button in the top bar stops the screen from dimming or locking while KotoLab is open (Screen Wake Lock API), so the score and tuner stay visible while your hands are on the strings. The choice is remembered.
 - **Full-screen tablature.** One tap fills the screen with the score and a compact playback bar (real full screen where the browser allows it, a full-window view on iPhone). A−/A+ resize the tablature; on phones the tab switches to a tighter layout with two bars per line, and lyrics that would collide are staggered onto two rows.
-- **Practice tools.** Play/pause, speed from 25 % to 150 %, loop any bars, metronome, count-in, and note-by-note stepping (← →).
+- **Practice tools.** Play/pause (Space), speed from 25 % to 150 %, loop any selection, metronome, count-in, and note-by-note stepping (← →).
 - **Explanations.** Click any note to see how to play it — string, open pitch, press, finger and technique, with step-by-step instructions. The *Learn the basics* panel covers the instrument, tunings, reading scores, fingers and every technique, each with a sound demo.
 - **Bring your own songs.** Import a MIDI file (arranged automatically), a Humdrum `**koto` file, or write one in the simple text format in the editor. Songs are saved in your browser and can be exported as `.json`.
 
@@ -77,6 +83,7 @@ js/views/          tablature, vertical score, koto diagram
 js/importers.js    MIDI and Humdrum **koto import
 js/guide.js        tuning walkthrough (step planning, directions, checks)
 js/tuner.js        microphone pitch detection
+js/tooltip.js      hover / tap / long-press tooltips for data-tip elements
 js/songs.js        starter library
 docs/RESEARCH.md   sources, tuning tables, notation and model notes
 ```
