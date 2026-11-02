@@ -10,6 +10,7 @@ import { KotoView } from './views/koto.js';
 import { SONGS } from './songs.js';
 import { readMidi, midiToEvents, parseHumdrumKoto } from './importers.js';
 import { TuningGuide } from './guide.js';
+import { ScreenWake } from './wakelock.js';
 
 const $ = (id) => document.getElementById(id);
 const STORE_KEY = 'kotolab.songs.v1';
@@ -82,7 +83,23 @@ function loadJSON(key, fallback) {
 function saveJSON(key, value) {
   try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage blocked */ }
 }
-const prefs = { rtl: false, a4: 440, ...loadJSON(PREFS_KEY, {}) };
+const prefs = { rtl: false, a4: 440, keepAwake: false, ...loadJSON(PREFS_KEY, {}) };
+
+const wake = new ScreenWake({ onChange: renderWake });
+let wakeNotified = false;
+function renderWake(w) {
+  const b = document.getElementById('wakeBtn');
+  if (!b) return;
+  b.setAttribute('aria-pressed', String(w.enabled));
+  b.classList.toggle('on', w.enabled && w.active);
+  b.classList.toggle('waiting', w.enabled && !w.active);
+  b.textContent = !w.enabled ? 'Keep screen on' : w.active ? 'Screen stays on' : 'Screen on: tap to retry';
+  if (w.enabled && w.error && w.error !== 'unsupported' && !wakeNotified) {
+    wakeNotified = true;
+    toast('The browser didn’t allow keeping the screen on yet (battery saver can block it). Tap anywhere to try again.');
+  }
+  if (w.active) wakeNotified = false;
+}
 // how the player's own koto is tuned right now: { open: number[13], label, base }
 let myKoto = loadJSON(KOTO_KEY, null);
 let userTunings = loadJSON(TUNING_KEY, []).filter((t) => Array.isArray(t.strings) && t.strings.length === 13);
@@ -1027,6 +1044,24 @@ function bind() {
   $('retuneCheck').addEventListener('click', () => showPanel('tune', { check: true }));
   $('guideAlready').addEventListener('click', () => { markTuned(); guide.setTarget(currentTarget(), myKoto); });
   $('guideToPlay').addEventListener('click', () => showPanel('play'));
+  $('wakeBtn').addEventListener('click', async () => {
+    if (wake.enabled) {
+      await wake.disable();
+      prefs.keepAwake = false;
+      toast('The screen can dim and lock normally again.');
+    } else {
+      if (!wake.supported) {
+        toast('This browser can’t keep the screen on. Chrome, Edge, Firefox and Safari 16.4 or later can.');
+        return;
+      }
+      prefs.keepAwake = true;
+      const ok = await wake.enable();
+      if (ok) toast('The screen will stay on while KotoLab is open.');
+    }
+    saveJSON(PREFS_KEY, prefs);
+  });
+  if (prefs.keepAwake) wake.enable();
+  renderWake(wake);
   $('rtlToggle').checked = prefs.rtl;
   $('rtlToggle').addEventListener('change', (e) => { prefs.rtl = e.target.checked; saveJSON(PREFS_KEY, prefs); renderScore(); });
   $('a4Select').value = String(prefs.a4);
@@ -1089,4 +1124,4 @@ function start() {
 start();
 
 // expose for debugging and tests
-window.kotolab = { state, player, audio, describe, guide, showPanel, get myKoto() { return myKoto; } };
+window.kotolab = { state, player, audio, describe, guide, showPanel, wake, get myKoto() { return myKoto; } };

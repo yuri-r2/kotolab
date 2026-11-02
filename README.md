@@ -15,6 +15,7 @@ movable bridges, string-name notation and left-hand presses.
 - **Tuning advisor.** Ranks every tuning for the current song, and can *fit the bridges* — suggest a few realistic bridge moves that make the song easier.
 - **Two notations.** A tablature view (left to right, or right to left like koto scores) with 13 lanes, press triangles, finger numbers and rhythm stems, and a traditional vertical score (縦譜) in the Ikuta style: kanji string names, beat squares, 2/3 finger marks, オ/ヲ/ヒ/ツ/ユ technique marks and kuchi-shōga.
 - **An animated koto.** Bridges slide into place when you change tuning; strings light up, with the plucking finger and the left-hand press shown as you play. Click a string to hear it.
+- **Keep screen on.** A button in the top bar stops the screen from dimming or locking while KotoLab is open (Screen Wake Lock API), so the score and tuner stay visible while your hands are on the strings. The choice is remembered.
 - **Practice tools.** Play/pause, speed from 25 % to 150 %, loop any bars, metronome, count-in, and note-by-note stepping (← →).
 - **Explanations.** Click any note to see how to play it — string, open pitch, press, finger and technique, with step-by-step instructions. The *Learn the basics* panel covers the instrument, tunings, reading scores, fingers and every technique, each with a sound demo.
 - **Bring your own songs.** Import a MIDI file (arranged automatically), a Humdrum `**koto` file, or write one in the simple text format in the editor. Songs are saved in your browser and can be exported as `.json`.

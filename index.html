@@ -9,13 +9,14 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=c2f16ccf">
+  <link rel="stylesheet" href="css/style.css?v=7bec5747">
 </head>
 <body>
   <header class="topbar">
     <button class="icon-btn only-narrow" id="libraryToggle" aria-label="Show song library" aria-expanded="false">☰</button>
     <a class="brand" href="./" aria-label="KotoLab home"><span class="brand-kanji">箏</span><span class="brand-name">KotoLab</span></a>
     <nav class="top-actions">
+      <button class="text-btn wake-btn" id="wakeBtn" aria-pressed="false" title="Stop the screen from dimming or locking while KotoLab is open">Keep screen on</button>
       <button class="text-btn" id="openLearn">Learn the basics</button>
       <button class="text-btn" id="openEditor">Edit score</button>
     </nav>
@@ -352,7 +353,7 @@ rq         quarter rest            q.  dotted       e3  triplet eighth
   <script type="importmap">
 {
   "imports": {
-    "./js/app.js": "./js/app.js?v=e0a4aabd",
+    "./js/app.js": "./js/app.js?v=1380d6ed",
     "./js/audio.js": "./js/audio.js?v=0cbca01d",
     "./js/engine.js": "./js/engine.js?v=85bafc88",
     "./js/guide.js": "./js/guide.js?v=7c2d6629",
@@ -367,10 +368,11 @@ rq         quarter rest            q.  dotted       e3  triplet eighth
     "./js/views/koto.js": "./js/views/koto.js?v=34f0a0f0",
     "./js/views/svg.js": "./js/views/svg.js?v=217d234a",
     "./js/views/tab.js": "./js/views/tab.js?v=69536bbb",
-    "./js/views/vertical.js": "./js/views/vertical.js?v=543b0d33"
+    "./js/views/vertical.js": "./js/views/vertical.js?v=543b0d33",
+    "./js/wakelock.js": "./js/wakelock.js?v=778d819c"
   }
 }
   </script>
-  <script type="module" src="js/app.js?v=e0a4aabd"></script>
+  <script type="module" src="js/app.js?v=1380d6ed"></script>
 </body>
 </html>
