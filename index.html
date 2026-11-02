@@ -45,76 +45,169 @@
         <p class="song-about" id="songAbout"></p>
       </section>
 
-      <section class="arrange" aria-label="Tuning and arrangement">
-        <label class="field">
-          <span>Tuning</span>
-          <select id="tuningSelect"></select>
-        </label>
-        <label class="field">
-          <span>String 一 tuned to</span>
-          <select id="baseSelect"></select>
-        </label>
-        <div class="field">
-          <span>Transpose</span>
-          <div class="stepper">
-            <button id="transDown" aria-label="Transpose down">−</button>
-            <output id="transValue">0</output>
-            <button id="transUp" aria-label="Transpose up">+</button>
-            <button class="chip" id="transAuto">Best fit</button>
+      <div class="main-tabs" role="tablist" aria-label="Song views">
+        <button role="tab" class="main-tab active" id="mainTabPlay" aria-selected="true" aria-controls="playPanel" data-panel="playPanel">Play</button>
+        <button role="tab" class="main-tab" id="mainTabTune" aria-selected="false" aria-controls="tunePanel" data-panel="tunePanel">Tuning <span class="badge" id="tuneBadge" hidden></span></button>
+      </div>
+
+      <div id="playPanel" role="tabpanel" aria-labelledby="mainTabPlay">
+        <div class="retune" id="retuneBanner" hidden>
+          <div>
+            <strong id="retuneTitle"></strong>
+            <p id="retuneText"></p>
+          </div>
+          <div class="retune-actions">
+            <button class="primary" id="retuneGuide">Walk me through it</button>
+            <button id="retuneDone">My koto is already tuned</button>
           </div>
         </div>
-        <label class="field">
-          <span>Deepest press</span>
-          <select id="maxPress">
-            <option value="1">Half step only (ヲ)</option>
-            <option value="2" selected>Whole step (オ)</option>
-            <option value="3">Step and a half</option>
-          </select>
-        </label>
-        <label class="check" id="keepWrap"><input type="checkbox" id="keepStrings" checked> Keep the original string choices</label>
-      </section>
 
-      <section class="koto-stage" aria-label="Koto">
-        <div id="kotoView"></div>
-        <p class="koto-hint">Click a string to hear it. Shift-click for a half-step press, Alt-click for a whole step. Highlighted bridges have moved from hira-jōshi.</p>
-      </section>
+        <section class="koto-stage" aria-label="Koto">
+          <div class="tuning-line">
+            <span>Tuning <strong id="tuneSummary"></strong></span>
+            <button class="link-btn" id="changeTuning">Change tuning</button>
+          </div>
+          <div id="kotoView"></div>
+          <p class="koto-hint">Click a string to hear it. Shift-click for a half-step press, Alt-click for a whole step. Highlighted bridges have moved from hira-jōshi.</p>
+        </section>
 
-      <section class="transport" aria-label="Playback">
-        <button class="play" id="playBtn" aria-label="Play">▶</button>
-        <button class="icon-btn" id="stopBtn" aria-label="Stop">■</button>
-        <button class="icon-btn" id="prevBtn" aria-label="Previous note">⏮</button>
-        <button class="icon-btn" id="nextBtn" aria-label="Next note">⏭</button>
-        <label class="speed">
-          <span>Speed</span>
-          <input type="range" id="speed" min="25" max="150" step="5" value="100">
-          <output id="speedValue">100% · ♩=66</output>
-        </label>
-        <label class="check"><input type="checkbox" id="loopToggle"> Loop bars <output id="loopValue"></output></label>
-        <label class="check"><input type="checkbox" id="metronome"> Metronome</label>
-        <label class="check"><input type="checkbox" id="countIn"> Count in</label>
-        <label class="field compact">
-          <span>Sound</span>
-          <select id="soundSelect">
-            <option value="synth">Plucked synth</option>
-            <option value="samples">Koto samples (online)</option>
-          </select>
-        </label>
-      </section>
+        <section class="transport" aria-label="Playback">
+          <button class="play" id="playBtn" aria-label="Play">▶</button>
+          <button class="icon-btn" id="stopBtn" aria-label="Stop">■</button>
+          <button class="icon-btn" id="prevBtn" aria-label="Previous note">⏮</button>
+          <button class="icon-btn" id="nextBtn" aria-label="Next note">⏭</button>
+          <label class="speed">
+            <span>Speed</span>
+            <input type="range" id="speed" min="25" max="150" step="5" value="100">
+            <output id="speedValue">100% · ♩=66</output>
+          </label>
+          <label class="check"><input type="checkbox" id="loopToggle"> Loop bars <output id="loopValue"></output></label>
+          <label class="check"><input type="checkbox" id="metronome"> Metronome</label>
+          <label class="check"><input type="checkbox" id="countIn"> Count in</label>
+          <label class="field compact">
+            <span>Sound</span>
+            <select id="soundSelect">
+              <option value="synth">Plucked synth</option>
+              <option value="samples">Koto samples (online)</option>
+            </select>
+          </label>
+        </section>
 
-      <section class="score" aria-label="Score">
-        <div class="score-tabs" role="tablist">
-          <button role="tab" class="tab active" id="tabTab" aria-selected="true" data-view="tab">Tablature</button>
-          <button role="tab" class="tab" id="tabVert" aria-selected="false" data-view="vertical">Vertical score 縦譜</button>
-          <span class="spacer"></span>
-          <label class="check"><input type="checkbox" id="showPitches"> Pitch names</label>
-          <label class="check"><input type="checkbox" id="showSyllables" checked> <span id="syllableLabel">Lyrics</span></label>
+        <section class="score" aria-label="Score">
+          <div class="score-tabs" role="tablist">
+            <button role="tab" class="tab active" id="tabTab" aria-selected="true" data-view="tab">Tablature</button>
+            <button role="tab" class="tab" id="tabVert" aria-selected="false" data-view="vertical">Vertical score 縦譜</button>
+            <span class="spacer"></span>
+            <label class="check" id="rtlWrap"><input type="checkbox" id="rtlToggle"> Right to left</label>
+            <label class="check"><input type="checkbox" id="showPitches"> Pitch names</label>
+            <label class="check"><input type="checkbox" id="showSyllables" checked> <span id="syllableLabel">Lyrics</span></label>
+          </div>
+          <div class="score-body" id="scoreBody">
+            <div id="tabView" class="view"></div>
+            <div id="vertView" class="view" hidden></div>
+          </div>
+          <p class="score-hint">Click a bar number to loop from that bar, Shift-click another to set the end. Space plays and pauses; ← → step through notes.</p>
+        </section>
+      </div>
+
+      <div id="tunePanel" role="tabpanel" aria-labelledby="mainTabTune" hidden>
+        <section class="arrange" aria-label="Tuning for this song">
+          <h2 class="tune-h">Tuning for this song</h2>
+          <label class="field">
+            <span>Tuning</span>
+            <select id="tuningSelect"></select>
+          </label>
+          <label class="field">
+            <span>String 一 tuned to</span>
+            <select id="baseSelect"></select>
+          </label>
+          <div class="field">
+            <span>Transpose</span>
+            <div class="stepper">
+              <button id="transDown" aria-label="Transpose down">−</button>
+              <output id="transValue">0</output>
+              <button id="transUp" aria-label="Transpose up">+</button>
+              <button class="chip" id="transAuto">Best fit</button>
+            </div>
+          </div>
+          <label class="field">
+            <span>Deepest press</span>
+            <select id="maxPress">
+              <option value="1">Half step only (ヲ)</option>
+              <option value="2" selected>Whole step (オ)</option>
+              <option value="3">Step and a half</option>
+            </select>
+          </label>
+          <label class="field">
+            <span>Reference pitch</span>
+            <select id="a4Select">
+              <option value="440">A = 440 Hz</option>
+              <option value="442">A = 442 Hz</option>
+              <option value="443">A = 443 Hz</option>
+            </select>
+          </label>
+          <label class="check" id="keepWrap"><input type="checkbox" id="keepStrings" checked> Keep the original string choices</label>
+        </section>
+
+
+        <section class="guide" aria-labelledby="guideTitle">
+          <h2 id="guideTitle">Tune your koto</h2>
+          <p class="guide-intro" id="guideIntro"></p>
+          <div class="guide-start" id="guideStartBox">
+            <label class="field"><span>Your koto is tuned to now</span><select id="guideFrom"></select></label>
+            <label class="field"><span>with string 一 on</span><select id="guideFromBase"></select></label>
+            <div class="field"><span>Target</span><strong class="guide-target" id="guideTarget"></strong></div>
+            <div class="guide-buttons">
+              <button class="primary" id="guideStart">Walk me through it</button>
+              <button id="guideAlready">My koto is already in this tuning</button>
+            </div>
+          </div>
+          <div id="guideKoto" class="guide-koto"></div>
+          <div class="guide-step" id="guideStep" hidden>
+            <p class="step-progress" id="stepProgress"></p>
+            <div class="step-main">
+              <span class="step-kanji" id="stepKanji"></span>
+              <div>
+                <p class="step-what" id="stepWhat"></p>
+                <p class="step-hint" id="stepHint"></p>
+              </div>
+            </div>
+            <div class="step-tools">
+              <button id="stepPlay">Play</button>
+              <button id="stepCompare">Play with</button>
+              <button id="stepMic" aria-pressed="false">Use microphone</button>
+            </div>
+            <div class="tuner" aria-hidden="true">
+              <div class="tuner-scale"><span>−50</span><span>flat</span><span>0</span><span>sharp</span><span>+50</span></div>
+              <div class="tuner-track"><div class="tuner-zone"></div><div class="tuner-needle" id="tunerNeedle"></div></div>
+            </div>
+            <p class="tuner-readout" id="tunerReadout" role="status" aria-live="polite"></p>
+            <div class="step-nav">
+              <button id="stepBack">Back</button>
+              <button class="primary" id="stepNext">Next string</button>
+            </div>
+          </div>
+          <div class="guide-finish" id="guideFinish" hidden>
+            <p id="guideFinishText"></p>
+            <button class="primary" id="guideToPlay">Start playing</button>
+          </div>
+        </section>
+
+        <div class="tune-grid">
+        <section class="panel">
+          <h2>Tuning advisor</h2>
+          <p class="muted small">Every tuning, at its best transposition, ranked by how easy this song is to play.</p>
+          <ol class="advisor" id="advisor"></ol>
+          <button class="wide-btn" id="fitBridges">Fit the bridges to this song</button>
+          <p class="muted small" id="fitNote"></p>
+        </section>
+
+        <section class="panel">
+          <h2>Bridge settings</h2>
+          <table class="bridges" id="bridgeTable"></table>
+        </section>
         </div>
-        <div class="score-body" id="scoreBody">
-          <div id="tabView" class="view"></div>
-          <div id="vertView" class="view" hidden></div>
-        </div>
-        <p class="score-hint">Click a bar number to loop from that bar, Shift-click another to set the end. Space plays and pauses; ← → step through notes.</p>
-      </section>
+      </div>
     </main>
 
     <aside class="side" aria-label="Details">
@@ -133,18 +226,6 @@
         <div id="inspectorBody"><p class="muted">Click a note in the score to see how to play it.</p></div>
       </section>
 
-      <section class="panel">
-        <h2>Tuning advisor</h2>
-        <p class="muted small">Every tuning, at its best transposition, ranked by how easy this song is to play.</p>
-        <ol class="advisor" id="advisor"></ol>
-        <button class="wide-btn" id="fitBridges">Fit the bridges to this song</button>
-        <p class="muted small" id="fitNote"></p>
-      </section>
-
-      <section class="panel">
-        <h2>Bridge settings</h2>
-        <table class="bridges" id="bridgeTable"></table>
-      </section>
     </aside>
   </div>
 

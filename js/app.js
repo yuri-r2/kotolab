@@ -9,9 +9,12 @@ import { VerticalView } from './views/vertical.js';
 import { KotoView } from './views/koto.js';
 import { SONGS } from './songs.js';
 import { readMidi, midiToEvents, parseHumdrumKoto } from './importers.js';
+import { TuningGuide } from './guide.js';
 
 const $ = (id) => document.getElementById(id);
 const STORE_KEY = 'kotolab.songs.v1';
+const PREFS_KEY = 'kotolab.prefs.v1';
+const KOTO_KEY = 'kotolab.myKoto.v1';
 const EPS = 1e-6;
 
 const state = {
@@ -29,6 +32,7 @@ const state = {
   arr: null,
   selected: null,
   loopBars: null,
+  panel: 'play',
 };
 
 const audio = new KotoAudio();
@@ -36,6 +40,20 @@ const kotoView = new KotoView($('kotoView'), { onPluck: pluckString });
 const tabView = new TabView($('tabView'), { onSelect: selectEvent, onBar: setLoopBar });
 const vertView = new VerticalView($('vertView'), { onSelect: selectEvent, onBar: setLoopBar });
 const player = new Player(audio, { onTick, onState });
+const guideKoto = new KotoView($('guideKoto'), { onPluck: (string) => {
+  const p = guide.target?.open[string - 1];
+  if (p != null) audio.prepare([p]).then(() => audio.pluck({ midi: p, when: audio.now() + 0.02, dur: 1.5, string }));
+} });
+const guide = new TuningGuide({
+  els: {
+    intro: $('guideIntro'), fromTuning: $('guideFrom'), fromBase: $('guideFromBase'), target: $('guideTarget'),
+    start: $('guideStart'), startBox: $('guideStartBox'), step: $('guideStep'), kanji: $('stepKanji'), progress: $('stepProgress'),
+    what: $('stepWhat'), hint: $('stepHint'), playTarget: $('stepPlay'), playCompare: $('stepCompare'), mic: $('stepMic'),
+    needle: $('tunerNeedle'), readout: $('tunerReadout'), back: $('stepBack'), next: $('stepNext'), finish: $('guideFinish'), finishText: $('guideFinishText'),
+  },
+  audio, kotoView: guideKoto, presets: TUNINGS, bases: BASES,
+  onTuned: (target) => markTuned(target, { quiet: true }),
+});
 
 // ---------------------------------------------------------------- storage
 function loadUserSongs() {
@@ -54,6 +72,16 @@ function saveUserSongs(list) {
   }
 }
 let userSongs = loadUserSongs();
+
+function loadJSON(key, fallback) {
+  try { return JSON.parse(localStorage.getItem(key)) ?? fallback; } catch { return fallback; }
+}
+function saveJSON(key, value) {
+  try { localStorage.setItem(key, JSON.stringify(value)); } catch { /* storage blocked */ }
+}
+const prefs = { rtl: false, a4: 440, ...loadJSON(PREFS_KEY, {}) };
+// how the player's own koto is tuned right now: { open: number[13], label, base }
+let myKoto = loadJSON(KOTO_KEY, null);
 const allSongs = () => [...SONGS, ...userSongs];
 
 // ---------------------------------------------------------------- library
@@ -187,6 +215,7 @@ function arrange() {
   renderPlayability();
   renderBridges();
   renderInspector();
+  renderTuningStatus();
   player.load(state.arr);
   updateSpeedLabel();
 }
@@ -220,6 +249,80 @@ function renderTuningSelect() {
   bs.disabled = state.tuningId === 'custom';
 }
 
+function tuningLabel(open = state.arr.open) {
+  for (const t of TUNINGS) {
+    for (const b of BASES) {
+      if (t.strings.every((p, i) => p + b.offset === open[i])) return `${t.name} ${t.jp}, 一 on ${b.name.split(' (')[0]}`;
+    }
+  }
+  return `custom bridges (${open.map((p) => pitchName(p, { octave: false })).join(' ')})`;
+}
+
+function currentTarget() {
+  return { open: state.arr.open.slice(), label: tuningLabel(), base: state.base };
+}
+
+function retuneDiff() {
+  if (!myKoto) return null;
+  return state.arr.open.map((p, i) => ({ string: i + 1, from: myKoto.open[i], to: p })).filter((d) => d.from !== d.to);
+}
+
+function renderTuningStatus() {
+  const label = tuningLabel();
+  $('tuneSummary').textContent = label;
+  const diff = retuneDiff();
+  const banner = $('retuneBanner');
+  const badge = $('tuneBadge');
+  if (!myKoto) {
+    banner.hidden = false;
+    $('retuneTitle').textContent = 'Is your koto tuned for this song?';
+    $('retuneText').textContent = `This song is arranged for ${label}. KotoLab can walk you through tuning it, one string at a time.`;
+    badge.hidden = true;
+  } else if (diff.length) {
+    banner.hidden = false;
+    $('retuneTitle').textContent = `Retune ${diff.length} string${diff.length > 1 ? 's' : ''} for this song`;
+    $('retuneText').textContent = `Your koto is in ${myKoto.label}; this song needs ${label}: ` +
+      diff.map((d) => `${STRING_NAMES[d.string - 1]} ${pitchName(d.from, { octave: false })}→${pitchName(d.to, { octave: false })}`).join(', ') + '.';
+    badge.hidden = false;
+    badge.textContent = String(diff.length);
+    badge.setAttribute('aria-label', `${diff.length} strings to retune`);
+  } else {
+    banner.hidden = true;
+    badge.hidden = true;
+  }
+  if (state.panel === 'tune' && (guide.index < 0 || !sameOpen(guide.target?.open, state.arr.open))) guide.setTarget(currentTarget(), myKoto);
+}
+
+function sameOpen(a, b) {
+  return !!a && !!b && a.every((p, i) => p === b[i]);
+}
+
+function markTuned(target = currentTarget(), { quiet = false } = {}) {
+  myKoto = { open: target.open.slice(), label: target.label, base: target.base };
+  saveJSON(KOTO_KEY, myKoto);
+  renderTuningStatus();
+  if (!quiet) toast(`Noted: your koto is in ${target.label}.`);
+}
+
+function showPanel(panel, { startGuide = false } = {}) {
+  state.panel = panel;
+  const play = panel === 'play';
+  $('playPanel').hidden = !play;
+  $('tunePanel').hidden = play;
+  for (const [id, on] of [['mainTabPlay', play], ['mainTabTune', !play]]) {
+    $(id).classList.toggle('active', on);
+    $(id).setAttribute('aria-selected', String(on));
+  }
+  if (play) {
+    guide.stopMic();
+    renderScore();
+    return;
+  }
+  if (player.playing) player.pause();
+  guide.setTarget(currentTarget(), myKoto);
+  if (startGuide && myKoto) guide.begin();
+}
+
 function renderKoto() {
   const open = state.arr.open;
   const hira = hiraPitches(state.base);
@@ -231,7 +334,8 @@ function renderKoto() {
 function renderScore() {
   const syl = $('showSyllables').checked;
   const pitches = $('showPitches').checked;
-  for (const v of [tabView, vertView]) v.options = { syllables: syl, pitches };
+  for (const v of [tabView, vertView]) v.options = { syllables: syl, pitches, rtl: prefs.rtl };
+  $('rtlWrap').hidden = state.view !== 'tab';
   $('tabView').hidden = state.view !== 'tab';
   $('vertView').hidden = state.view !== 'vertical';
   if (state.view === 'tab') tabView.render(state.arr);
@@ -782,6 +886,18 @@ function bind() {
   $('showPitches').addEventListener('change', renderScore);
   $('showSyllables').addEventListener('change', renderScore);
   $('fitBridges').addEventListener('click', fitBridges);
+  $('mainTabPlay').addEventListener('click', () => showPanel('play'));
+  $('mainTabTune').addEventListener('click', () => showPanel('tune'));
+  $('changeTuning').addEventListener('click', () => showPanel('tune'));
+  $('retuneGuide').addEventListener('click', () => showPanel('tune', { startGuide: true }));
+  $('retuneDone').addEventListener('click', () => markTuned());
+  $('guideAlready').addEventListener('click', () => { markTuned(); guide.setTarget(currentTarget(), myKoto); });
+  $('guideToPlay').addEventListener('click', () => showPanel('play'));
+  $('rtlToggle').checked = prefs.rtl;
+  $('rtlToggle').addEventListener('change', (e) => { prefs.rtl = e.target.checked; saveJSON(PREFS_KEY, prefs); renderScore(); });
+  $('a4Select').value = String(prefs.a4);
+  audio.setA4(prefs.a4);
+  $('a4Select').addEventListener('change', (e) => { prefs.a4 = Number(e.target.value); saveJSON(PREFS_KEY, prefs); audio.setA4(prefs.a4); });
   $('openLearn').addEventListener('click', () => { renderLearn(); $('learnDrawer').showModal(); });
   $('openEditor').addEventListener('click', () => openEditor());
   $('newSong').addEventListener('click', () => {
@@ -814,7 +930,7 @@ function bind() {
     $('libraryToggle').setAttribute('aria-expanded', String(open));
   });
   document.addEventListener('keydown', (e) => {
-    if (e.target.closest('input, textarea, select, dialog[open]') || e.metaKey || e.ctrlKey) return;
+    if (e.target.closest('input, textarea, select, dialog[open]') || e.metaKey || e.ctrlKey || state.panel !== 'play') return;
     if (e.code === 'Space' && !e.target.closest('button, [role=button]')) { e.preventDefault(); togglePlay(); }
     else if (e.key === 'ArrowRight') { e.preventDefault(); stepNote(1); }
     else if (e.key === 'ArrowLeft') { e.preventDefault(); stepNote(-1); }
@@ -839,4 +955,4 @@ function start() {
 start();
 
 // expose for debugging and tests
-window.kotolab = { state, player, audio, describe };
+window.kotolab = { state, player, audio, describe, guide, showPanel, get myKoto() { return myKoto; } };

@@ -10,8 +10,9 @@ movable bridges, string-name notation and left-hand presses.
 
 - **Tuning-aware arrangements.** Pick a tuning (hira, kumoi, han-kumoi, hon-kumoi, kokin, nakazora, gaku, nogi) and a base pitch. KotoLab maps every note to a string and, when needed, a left-hand press (ヲ half step, オ whole step), choosing the transposition that is easiest to play.
 - **Playability check.** A difficulty score, counts of open strings and presses, and warnings for fast left-hand jumps, double presses in chords and notes that had to move an octave.
+- **Tuning tab with a guided walkthrough.** KotoLab remembers how your koto is tuned. When a song needs a different tuning it tells you which bridges to move, then walks you through them one string at a time: which way to slide the bridge, how far, which already-tuned string to check it against, reference tones, and a microphone tuner with a cents meter. It can also tune all 13 strings from scratch.
 - **Tuning advisor.** Ranks every tuning for the current song, and can *fit the bridges* — suggest a few realistic bridge moves that make the song easier.
-- **Two notations.** A tablature view with 13 lanes, press triangles, finger numbers and rhythm stems, and a traditional vertical score (縦譜) in the Ikuta style: kanji string names, beat squares, 2/3 finger marks, オ/ヲ/ヒ/ツ/ユ technique marks and kuchi-shōga.
+- **Two notations.** A tablature view (left to right, or right to left like koto scores) with 13 lanes, press triangles, finger numbers and rhythm stems, and a traditional vertical score (縦譜) in the Ikuta style: kanji string names, beat squares, 2/3 finger marks, オ/ヲ/ヒ/ツ/ユ technique marks and kuchi-shōga.
 - **An animated koto.** Bridges slide into place when you change tuning; strings light up, with the plucking finger and the left-hand press shown as you play. Click a string to hear it.
 - **Practice tools.** Play/pause, speed from 25 % to 150 %, loop any bars, metronome, count-in, and note-by-note stepping (← →).
 - **Explanations.** Click any note to see how to play it — string, open pitch, press, finger and technique, with step-by-step instructions. The *Learn the basics* panel covers the instrument, tunings, reading scores, fingers and every technique, each with a sound demo.
@@ -64,6 +65,8 @@ js/audio.js        Karplus–Strong synth, optional koto samples, technique bend
 js/player.js       look-ahead scheduler, loop, metronome
 js/views/          tablature, vertical score, koto diagram
 js/importers.js    MIDI and Humdrum **koto import
+js/guide.js        tuning walkthrough (step planning, directions, checks)
+js/tuner.js        microphone pitch detection
 js/songs.js        starter library
 docs/RESEARCH.md   sources, tuning tables, notation and model notes
 ```

@@ -1,5 +1,8 @@
 // Tab view: 13 string lanes (一 at the top, as the koto lies in front of you),
-// time running left to right, wrapped into systems like Songsterr/Guitar Pro.
+// wrapped into systems like Songsterr/Guitar Pro. Time runs left to right, or
+// right to left (options.rtl) to match the direction koto scores are read in.
+// RTL is drawn by laying out left to right and mirroring the whole drawing,
+// then flipping each text label back so it reads normally.
 
 import { el, clear } from './svg.js';
 import { STRING_NAMES, pitchName } from '../tunings.js';
@@ -19,7 +22,7 @@ export class TabView {
     this.onBar = onBar;
     this.noteEls = new Map();
     this.systems = [];
-    this.options = { pitches: false, syllables: true };
+    this.options = { pitches: false, syllables: true, rtl: false };
   }
 
   render(arr) {
@@ -48,6 +51,8 @@ export class TabView {
     const sysH = TOP + LANE * 13 + RHYTHM + 18;
     const svg = el('svg', { class: 'tab-svg', width, height: systems.length * sysH + 10, viewBox: `0 0 ${width} ${systems.length * sysH + 10}`, role: 'img', 'aria-label': 'Koto tablature' }, this.container);
     this.svg = svg;
+    const root = el('g', { class: 'tab-root' }, svg);
+    this.root = root;
     this.systems = [];
     const fullBeats = Math.max(...systems.map((s) => s.reduce((a, m) => a + m.beats, 0)));
     systems.forEach((sys, si) => {
@@ -55,7 +60,7 @@ export class TabView {
       const totalBeats = sys.reduce((a, m) => a + m.beats, 0);
       const isLast = si === systems.length - 1;
       const beatPx = isLast && systems.length > 1 ? Math.min(usable / totalBeats, usable / fullBeats) : usable / totalBeats;
-      const g = el('g', { class: 'system' }, svg);
+      const g = el('g', { class: 'system' }, root);
       const laneY = (s) => y0 + TOP + (s - 1) * LANE + LANE / 2;
       const xEnd = GUTTER + totalBeats * beatPx;
       // lane labels and lines
@@ -84,10 +89,21 @@ export class TabView {
       }
       el('line', { x1: x, x2: x, y1: laneY(1) - 6, y2: laneY(13) + 6, class: 'barline' + (isLast ? ' final' : '') }, g);
     });
-    this.playhead = el('line', { class: 'playhead', x1: 0, x2: 0, y1: 0, y2: 0, visibility: 'hidden' }, svg);
-    this.loopRect = el('rect', { class: 'loop-band', x: 0, y: 0, width: 0, height: 0, visibility: 'hidden' }, svg);
-    svg.insertBefore(this.loopRect, svg.firstChild);
+    this.playhead = el('line', { class: 'playhead', x1: 0, x2: 0, y1: 0, y2: 0, visibility: 'hidden' }, root);
+    this.loopRect = el('rect', { class: 'loop-band', x: 0, y: 0, width: 0, height: 0, visibility: 'hidden' }, root);
+    root.insertBefore(this.loopRect, root.firstChild);
+    if (this.options.rtl) this.mirror(root, width);
     void bb;
+  }
+
+  mirror(root, width) {
+    root.setAttribute('transform', `translate(${width} 0) scale(-1 1)`);
+    const swap = { start: 'end', end: 'start', middle: 'middle' };
+    for (const t of root.querySelectorAll('text')) {
+      const x = Number(t.getAttribute('x')) || 0;
+      t.setAttribute('transform', `translate(${2 * x} 0) scale(-1 1)`);
+      t.setAttribute('text-anchor', swap[t.getAttribute('text-anchor') || 'start']);
+    }
   }
 
   renderMeasure(g, m, x0, beatPx, laneY, y0, unit) {

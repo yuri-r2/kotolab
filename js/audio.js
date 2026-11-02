@@ -149,11 +149,18 @@ export class KotoAudio {
     return 'synth';
   }
 
+  setA4(a4) {
+    if (a4 === this.a4) return;
+    this.a4 = a4;
+    this.synthCache.clear();
+  }
+
   bufferFor(midi) {
     if (this.mode === 'samples') {
       const m = Math.round(midi);
       const buf = this.sampleCache.get(m);
-      if (buf) return { buf, cents: (midi - m) * 100 };
+      // samples are at A=440; shift them to the chosen reference pitch
+      if (buf) return { buf, cents: (midi - m) * 100 + 1200 * Math.log2(this.a4 / 440) };
     }
     return { buf: this.synthBuffer(midi), cents: 0 };
   }

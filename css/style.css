@@ -121,6 +121,13 @@ button { cursor: pointer; }
 .kbridge-shape { fill: #f6efdc; stroke: #6a4b28; stroke-width: 1; }
 .kbridge.moved .kbridge-shape { fill: #fff7d6; stroke: var(--beni); stroke-width: 1.6; }
 .kbridge-pitch { font: 700 9.5px var(--sans); fill: #3a2610; }
+.kghost-shape { fill: none; stroke: #6a4b28; stroke-width: 1; stroke-dasharray: 2 2; opacity: 0.8; }
+.kghost { pointer-events: none; }
+.kmove-arrow { stroke: var(--beni); stroke-width: 1.6; marker-end: none; stroke-dasharray: 4 3; }
+.kstring.focused .kstring-line { stroke: #fff; stroke-width: 3; }
+.kstring.focused .kbridge-shape { fill: #fff7d6; stroke: var(--beni); stroke-width: 2; }
+.kstring.focused .kname { fill: var(--beni); }
+.kstring.dimmed { opacity: 0.45; }
 .khand-dot { fill: var(--beni); }
 .khand-mark { font: 700 8px var(--sans); fill: #fff; }
 .kpick-dot { fill: var(--ai); }
@@ -317,4 +324,69 @@ textarea#edScore { width: 100%; min-height: 300px; font: 14px/1.6 ui-monospace, 
 @media (prefers-reduced-motion: reduce) {
   .kbridge, .meter span, .toast, .library { transition: none; }
   .kstring-glow.flash { animation: none; }
+}
+
+/* main tabs: Play / Tuning */
+.main-tabs { display: flex; gap: 4px; border-bottom: 2px solid var(--ink); margin: 4px 0 16px; }
+.main-tab {
+  position: relative; border: 1px solid transparent; border-bottom: 0; background: none;
+  padding: 8px 18px 7px; font: 700 16px var(--serif); color: var(--ink-soft); border-radius: var(--r-sm) var(--r-sm) 0 0;
+}
+.main-tab:hover { color: var(--ink); }
+.main-tab.active { background: var(--ink); color: var(--silk); }
+.badge { display: inline-block; min-width: 20px; padding: 0 6px; margin-left: 4px; border-radius: 10px; background: var(--beni); color: #fff; font: 700 12px/20px var(--sans); text-align: center; }
+
+.retune {
+  display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 10px 20px;
+  padding: 12px 14px; margin-bottom: 14px; border: 1px solid var(--beni); border-left-width: 5px; border-radius: var(--r-sm); background: #fbf1ef;
+}
+.retune strong { font: 700 16px var(--serif); }
+.retune p { margin: 2px 0 0; font-size: 13.5px; color: var(--ink-soft); max-width: 70ch; }
+.retune-actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.retune-actions button, .guide-buttons button, .step-tools button, .step-nav button, .guide-finish button {
+  padding: 7px 14px; border-radius: var(--r-sm); border: 1px solid var(--ink); background: var(--card); font-size: 14px;
+}
+.retune-actions .primary, .guide-buttons .primary, .step-nav .primary, .guide-finish .primary { background: var(--ink); color: var(--silk); }
+button:disabled { opacity: 0.5; cursor: default; }
+
+.tuning-line { display: flex; flex-wrap: wrap; align-items: baseline; gap: 4px 12px; font-size: 14px; color: var(--ink-soft); margin: 0 6px 4px; }
+.tuning-line strong { color: var(--ink); font-weight: 700; }
+.link-btn { border: 0; background: none; padding: 0; color: var(--ai); font-weight: 700; text-decoration: underline; text-underline-offset: 2px; }
+
+/* tuning panel */
+.tune-h, .guide h2 { font: 700 20px var(--serif); margin: 0 0 4px; width: 100%; }
+#tunePanel .arrange { border-top: 0; padding-top: 0; }
+.guide { border-top: 1px solid var(--rule); padding: 16px 0 6px; }
+.guide-intro { margin: 2px 0 12px; color: var(--ink-soft); max-width: 72ch; }
+.guide-start { display: flex; flex-wrap: wrap; align-items: end; gap: 12px 18px; margin-bottom: 10px; }
+.guide-target { font: 700 15px var(--sans); color: var(--ink); padding: 6px 0; }
+.guide-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
+.guide-koto svg { display: block; width: 100%; height: auto; max-height: 340px; }
+.guide-step { border: 1px solid var(--rule); background: var(--card); border-radius: var(--r-md); padding: 14px 16px; margin-top: 8px; }
+.guide-step.in-tune { border-color: var(--ai); box-shadow: 0 0 0 2px var(--ai-soft); }
+.step-progress { margin: 0 0 6px; font-size: 13px; color: var(--ink-soft); }
+.step-main { display: flex; gap: 16px; align-items: flex-start; }
+.step-kanji { font: 800 64px/1 var(--serif); color: var(--beni); min-width: 1em; }
+.step-what { font-size: 16px; margin: 4px 0 6px; }
+.step-hint { margin: 0; color: var(--ink-soft); }
+.step-tools { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0; }
+.step-tools button[aria-pressed='true'] { background: var(--ai); color: #fff; border-color: var(--ai); }
+.tuner { max-width: 420px; }
+.tuner-scale { display: flex; justify-content: space-between; font-size: 11px; color: var(--ink-faint); }
+.tuner-track { position: relative; height: 22px; border-radius: 11px; background: linear-gradient(90deg, #f3d9d4, #fff 40%, #fff 60%, #f3d9d4); border: 1px solid var(--rule); }
+.tuner-zone { position: absolute; left: 44%; width: 12%; top: 0; bottom: 0; background: var(--ai-soft); border-left: 1px solid var(--ai); border-right: 1px solid var(--ai); }
+.tuner-needle { position: absolute; top: -3px; bottom: -3px; width: 3px; margin-left: -1.5px; left: 50%; background: var(--ink); border-radius: 2px; opacity: 0.25; transition: left 0.08s linear; }
+.in-tune .tuner-needle { background: var(--ai); }
+.tuner-readout { min-height: 1.5em; margin: 6px 0 10px; font-weight: 500; }
+.in-tune .tuner-readout { color: var(--ai); }
+.step-nav { display: flex; gap: 8px; justify-content: flex-end; }
+.guide-finish { padding: 14px 16px; border: 1px solid var(--ai); border-radius: var(--r-md); background: var(--ai-soft); margin-top: 8px; display: flex; align-items: center; gap: 14px; flex-wrap: wrap; }
+.guide-finish p { margin: 0; font: 700 16px var(--serif); }
+.tune-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 0 28px; border-top: 1px solid var(--rule); padding-top: 16px; }
+.tune-grid .panel { border-bottom: 0; }
+@media (prefers-reduced-motion: reduce) { .tuner-needle { transition: none; } }
+@media (max-width: 820px) {
+  .step-kanji { font-size: 48px; }
+  .guide-koto { overflow-x: auto; }
+  .guide-koto svg { min-width: 680px; }
 }
