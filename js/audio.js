@@ -241,6 +241,25 @@ export class KotoAudio {
     src.onended = () => this.sources.delete(src);
   }
 
+  /** A short two-note chime to confirm a string is in tune. */
+  chime(when = this.now() + 0.02) {
+    const ctx = this.ensure();
+    [[1318.5, 0], [1975.5, 0.09]].forEach(([f, dt]) => {
+      const osc = ctx.createOscillator();
+      osc.type = 'sine';
+      osc.frequency.value = f;
+      const g = ctx.createGain();
+      g.gain.setValueAtTime(0.0001, when + dt);
+      g.gain.exponentialRampToValueAtTime(0.28, when + dt + 0.01);
+      g.gain.exponentialRampToValueAtTime(0.0001, when + dt + 0.55);
+      osc.connect(g).connect(this.master);
+      osc.start(when + dt);
+      osc.stop(when + dt + 0.6);
+      this.sources.add(osc);
+      osc.onended = () => this.sources.delete(osc);
+    });
+  }
+
   click(when, accent) {
     const ctx = this.ensure();
     const osc = ctx.createOscillator();

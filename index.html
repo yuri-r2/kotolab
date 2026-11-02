@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=a0ac7413">
+  <link rel="stylesheet" href="css/style.css?v=c2f16ccf">
 </head>
 <body>
   <header class="topbar">
@@ -198,10 +198,7 @@
               <p id="micAlertText"></p>
               <button id="micRetry">Try the microphone again</button>
             </div>
-            <div class="tuner" id="tunerMeter" aria-hidden="true">
-              <div class="tuner-scale"><span>−50</span><span>flat</span><span>0</span><span>sharp</span><span>+50</span></div>
-              <div class="tuner-track"><div class="tuner-zone"></div><div class="tuner-needle" id="tunerNeedle"></div></div>
-            </div>
+            <div class="gauge" id="tunerMeter"><div id="tunerGauge"></div></div>
             <p class="tuner-readout" id="tunerReadout" role="status" aria-live="polite"></p>
             <div class="step-nav">
               <button id="stepBack">Back</button>
@@ -355,10 +352,10 @@ rq         quarter rest            q.  dotted       e3  triplet eighth
   <script type="importmap">
 {
   "imports": {
-    "./js/app.js": "./js/app.js?v=3bed378a",
-    "./js/audio.js": "./js/audio.js?v=f063a384",
+    "./js/app.js": "./js/app.js?v=e0a4aabd",
+    "./js/audio.js": "./js/audio.js?v=0cbca01d",
     "./js/engine.js": "./js/engine.js?v=85bafc88",
-    "./js/guide.js": "./js/guide.js?v=5b376bf2",
+    "./js/guide.js": "./js/guide.js?v=7c2d6629",
     "./js/importers.js": "./js/importers.js?v=7052aaed",
     "./js/notation.js": "./js/notation.js?v=fda80ddf",
     "./js/player.js": "./js/player.js?v=bb5d2d25",
@@ -366,13 +363,14 @@ rq         quarter rest            q.  dotted       e3  triplet eighth
     "./js/techniques.js": "./js/techniques.js?v=3523b293",
     "./js/tuner.js": "./js/tuner.js?v=ed7b2744",
     "./js/tunings.js": "./js/tunings.js?v=dce082bb",
-    "./js/views/koto.js": "./js/views/koto.js?v=3815f3e2",
+    "./js/views/gauge.js": "./js/views/gauge.js?v=0c8fabd8",
+    "./js/views/koto.js": "./js/views/koto.js?v=34f0a0f0",
     "./js/views/svg.js": "./js/views/svg.js?v=217d234a",
     "./js/views/tab.js": "./js/views/tab.js?v=69536bbb",
     "./js/views/vertical.js": "./js/views/vertical.js?v=543b0d33"
   }
 }
   </script>
-  <script type="module" src="js/app.js?v=3bed378a"></script>
+  <script type="module" src="js/app.js?v=e0a4aabd"></script>
 </body>
 </html>

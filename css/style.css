@@ -438,3 +438,56 @@ button:disabled { opacity: 0.5; cursor: default; }
 .place-marker::before { content: ''; position: absolute; left: -8px; top: 3px; border-left: 8px solid transparent; border-right: 8px solid transparent; border-bottom: 20px solid #fff7d6; filter: drop-shadow(0 0 1px #6a4b28); }
 .place-marker::after { content: ''; position: absolute; left: -1px; top: -4px; bottom: -4px; width: 2px; background: var(--beni); }
 .place-label { margin: 22px 0 0; font-weight: 700; font-size: 14px; }
+
+/* tuner gauge */
+:root { --in-tune: #2e8b57; --near: #c98a12; --far: #b23a3a; }
+.gauge { max-width: 380px; margin: 4px auto 0; }
+.gauge-svg { display: block; width: 100%; height: auto; }
+.g-zone { fill: none; stroke-width: 12; stroke-linecap: butt; }
+.g-far { stroke: #f1d3cd; }
+.g-near { stroke: #f5e3bd; }
+.g-in { stroke: #cfe9d9; }
+.g-tick { stroke: #9aa3b0; stroke-width: 1.4; }
+.g-tick.major { stroke: var(--ink-soft); stroke-width: 2; }
+.g-scale { font: 10px var(--sans); fill: var(--ink-faint); }
+.g-side { font: 11px var(--sans); fill: var(--ink-faint); }
+.g-needle-line { stroke: var(--ink); stroke-width: 3; stroke-linecap: round; }
+.g-needle-tip { fill: var(--ink); }
+.g-ring-bg { fill: none; stroke: var(--paper-2); stroke-width: 6; }
+.g-ring { fill: none; stroke: var(--in-tune); stroke-width: 6; stroke-linecap: round; transition: stroke-dashoffset 0.12s linear; }
+.g-hub { fill: #fff; stroke: var(--rule); stroke-width: 1.5; transition: fill 0.2s, stroke 0.2s; }
+.g-note { font: 800 22px var(--sans); fill: var(--ink); }
+.g-cents { font: 600 11px var(--sans); fill: var(--ink-soft); }
+.g-check { fill: none; stroke: #fff; stroke-width: 5; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 46; stroke-dashoffset: 46; opacity: 0; }
+.g-cue { display: none; }
+.gauge-svg[data-state='idle'] .g-needle { opacity: 0.35; }
+.gauge-svg[data-state='near'] .g-needle-line, .gauge-svg[data-state='near'] .g-needle-tip { stroke: var(--near); fill: var(--near); }
+.gauge-svg[data-state='near'] .g-hub { stroke: var(--near); }
+.gauge-svg[data-state='far'] .g-needle-line, .gauge-svg[data-state='far'] .g-needle-tip { stroke: var(--far); fill: var(--far); }
+.gauge-svg[data-state='far'] .g-hub { stroke: var(--far); }
+.gauge-svg[data-state='in'] .g-needle-line, .gauge-svg[data-state='in'] .g-needle-tip { stroke: var(--in-tune); fill: var(--in-tune); }
+.gauge-svg[data-state='in'] .g-hub { stroke: var(--in-tune); fill: #eaf6ef; }
+.gauge-svg[data-state='in'] .g-note { fill: var(--in-tune); }
+.gauge-svg[data-state='done'] .g-hub { fill: var(--in-tune); stroke: var(--in-tune); animation: g-pop 0.45s cubic-bezier(0.2, 1.6, 0.4, 1); transform-origin: 160px 150px; }
+.gauge-svg[data-state='done'] .g-note, .gauge-svg[data-state='done'] .g-cents { opacity: 0; }
+.gauge-svg[data-state='done'] .g-check { opacity: 1; animation: g-draw 0.35s 0.1s ease-out forwards; }
+.gauge-svg[data-state='done'] .g-needle-line, .gauge-svg[data-state='done'] .g-needle-tip { stroke: var(--in-tune); fill: var(--in-tune); }
+.gauge-svg[data-state='done'] .g-zone.g-in { stroke: var(--in-tune); }
+@keyframes g-pop { 0% { transform: scale(0.7); } 100% { transform: scale(1); } }
+@keyframes g-draw { to { stroke-dashoffset: 0; } }
+.tuner-readout { text-align: center; font: 700 16px var(--sans); min-height: 1.6em; margin: 4px 0 12px; color: var(--ink-soft); }
+.tuner-readout[data-state='in'], .tuner-readout[data-state='done'] { color: var(--in-tune); }
+.tuner-readout[data-state='near'] { color: var(--near); }
+.tuner-readout[data-state='far'] { color: var(--far); }
+.guide-step.in-tune { border-color: var(--in-tune); box-shadow: 0 0 0 3px rgba(46, 139, 87, 0.18); }
+.chip-step.verified { background: var(--in-tune); border-color: var(--in-tune); }
+.chip-step.verified::after { color: var(--in-tune); border-color: var(--in-tune); }
+.chip-step.pop { animation: chip-pop 0.5s cubic-bezier(0.2, 1.6, 0.4, 1); }
+@keyframes chip-pop { 0% { transform: scale(0.6); } 100% { transform: scale(1); } }
+.kstring.tuned .kstring-line { animation: string-tuned 1.4s ease-out; }
+@keyframes string-tuned { 0%, 40% { stroke: #7be0a6; stroke-width: 3.5; } 100% { stroke: var(--silk); stroke-width: 1.6; } }
+@media (prefers-reduced-motion: reduce) {
+  .gauge-svg[data-state='done'] .g-hub, .chip-step.pop, .kstring.tuned .kstring-line { animation: none; }
+  .gauge-svg[data-state='done'] .g-check { animation: none; stroke-dashoffset: 0; }
+  .g-ring { transition: none; }
+}

@@ -117,6 +117,18 @@ export class KotoView {
     });
   }
 
+  /** Brief green glow on a string that was just confirmed in tune. */
+  markTuned(string) {
+    const s = this.strings[string - 1];
+    if (!s) return;
+    s.g.classList.remove('tuned');
+    void s.g.getBBox();
+    s.g.classList.add('tuned');
+    s.glow.classList.remove('flash');
+    void s.glow.getBBox();
+    s.glow.classList.add('flash');
+  }
+
   /** Emphasise one string (1–13) and dim the rest; null clears. */
   focus(string) {
     this.strings.forEach((s, i) => {

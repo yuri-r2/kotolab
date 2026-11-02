@@ -52,7 +52,7 @@ const guide = new TuningGuide({
     what: $('stepWhat'), hint: $('stepHint'), playTarget: $('stepPlay'), playCompare: $('stepCompare'), mic: $('stepMic'),
     length: $('guideLength'), lengthWrap: $('guideLengthWrap'), place: $('stepPlace'), meter: $('tunerMeter'), placeMarker: $('placeMarker'), placeLabel: $('placeLabel'),
     micAlert: $('micAlert'), micAlertText: $('micAlertText'), micRetry: $('micRetry'),
-    needle: $('tunerNeedle'), readout: $('tunerReadout'), back: $('stepBack'), next: $('stepNext'), finish: $('guideFinish'), finishText: $('guideFinishText'),
+    gauge: $('tunerGauge'), readout: $('tunerReadout'), back: $('stepBack'), next: $('stepNext'), finish: $('guideFinish'), finishText: $('guideFinishText'),
   },
   audio, kotoView: guideKoto, presets: TUNINGS, bases: BASES,
   onTuned: (target, { verified } = {}) => markTuned(target, { quiet: true, verified }),

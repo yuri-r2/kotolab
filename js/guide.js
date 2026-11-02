@@ -5,6 +5,7 @@
 
 import { STRING_NAMES, STRING_READINGS, pitchName } from './tunings.js';
 import { Tuner, centsOff, freqToMidi } from './tuner.js';
+import { TunerGauge } from './views/gauge.js';
 
 const INTERVALS = ['unison', 'minor second', 'major second', 'minor third', 'major third', 'perfect fourth', 'tritone', 'perfect fifth', 'minor sixth', 'major sixth', 'minor seventh', 'major seventh', 'octave'];
 
@@ -116,6 +117,7 @@ export class TuningGuide {
     this.inTune = [];
     this.ignoreUntil = 0;
     this.micFailed = false;
+    this.gauge = new TunerGauge(els.gauge, { tolerance: TOLERANCE_CENTS });
     els.start.addEventListener('click', () => this.begin('tune'));
     els.check.addEventListener('click', () => this.begin('check'));
     els.back.addEventListener('click', () => this.go(this.index - 1));
@@ -217,7 +219,7 @@ export class TuningGuide {
     box.innerHTML = '';
     this.steps.forEach((s, i) => {
       const b = document.createElement('button');
-      b.className = `chip-step ${s.status}${i === this.index ? ' current' : ''}`;
+      b.className = `chip-step ${s.status}${i === this.index ? ' current' : ''}${s.justVerified ? ' pop' : ''}`;
       b.textContent = STRING_NAMES[s.string - 1];
       const st = s.status === 'verified' ? `in tune (${fmtCents(s.cents)})` : s.status === 'ear' ? 'checked by ear' : s.status === 'skipped' ? 'skipped' : 'not checked yet';
       b.setAttribute('aria-label', `String ${STRING_NAMES[s.string - 1]}: ${st}`);
@@ -256,7 +258,9 @@ export class TuningGuide {
     e.readout.textContent = step.status === 'verified'
       ? `Verified: in tune (${fmtCents(step.cents)}).`
       : this.tuner.running ? `Listening… pluck ${STRING_NAMES[step.string - 1]}.` : this.micMessage();
-    this.setNeedle(step.status === 'verified' ? step.cents : null);
+    this.gauge.setTarget(pitchName(step.to), step.status === 'verified' ? '' : `Pluck ${STRING_NAMES[step.string - 1]}`);
+    if (step.status === 'verified') this.gauge.celebrate(`${STRING_NAMES[step.string - 1]} is in tune`);
+    e.readout.dataset.state = step.status === 'verified' ? 'done' : 'idle';
     this.renderChips();
     this.koto.focus(step.string);
     if (this.mode === 'bridges') {
@@ -279,7 +283,6 @@ export class TuningGuide {
       e.playCompare.hidden = true;
       e.playTarget.hidden = true;
       e.meter.hidden = true;
-      this.setNeedle(null);
       this.updateNextButton();
       return;
     }
@@ -303,6 +306,9 @@ export class TuningGuide {
     e.placeLabel.textContent = `${cm} cm of ${Math.round(L)} cm`;
     e.playCompare.hidden = !step.partner;
     e.readout.textContent = step.status === 'verified' ? `Verified: in tune (${fmtCents(step.cents)}).` : this.tuner.running ? `Listening… pluck ${STRING_NAMES[step.string - 1]}.` : this.micMessage();
+    this.gauge.setTarget(pitchName(step.to), step.status === 'verified' ? '' : `Pluck ${STRING_NAMES[step.string - 1]}`);
+    if (step.status === 'verified') this.gauge.celebrate(`${STRING_NAMES[step.string - 1]} is in tune`);
+    e.readout.dataset.state = step.status === 'verified' ? 'done' : 'idle';
     this.updateNextButton();
   }
 
@@ -465,16 +471,14 @@ export class TuningGuide {
     this.tuner.stop();
     this.els.mic.textContent = 'Use microphone';
     this.els.mic.setAttribute('aria-pressed', 'false');
-    this.setNeedle(null);
+    this.gauge.update(null);
     this.setLevel(0);
   }
 
-  setNeedle(cents) {
-    const n = this.els.needle;
-    if (cents == null) { n.style.opacity = '0.25'; n.style.left = '50%'; return; }
-    const c = Math.max(-50, Math.min(50, cents));
-    n.style.opacity = '1';
-    n.style.left = `${50 + c}%`;
+  /** Same text for the gauge (visual) and the live region (screen readers). */
+  say(text) {
+    this.els.readout.dataset.state = this.gauge.svg.dataset.state;
+    if (this.els.readout.textContent !== text) this.els.readout.textContent = text;
   }
 
   setLevel(level) {
@@ -486,46 +490,73 @@ export class TuningGuide {
     const step = this.steps[this.index];
     if (!step || this.els.step.hidden || step.status === 'verified') return;
     if (performance.now() < this.ignoreUntil) return;
-    if (!freq) { this.inTune = []; return; }
+    if (!freq) {
+      this.inTune = [];
+      this.silentSince = this.silentSince || performance.now();
+      if (performance.now() - this.silentSince > 350 && this.gauge.active) {
+        this.gauge.update(null);
+        this.gauge.setHold(0);
+        if (!(this.mode === 'bridges' && step.phase === 'measure')) this.say(`Pluck ${STRING_NAMES[step.string - 1]}`);
+      }
+      return;
+    }
+    this.silentSince = 0;
     if (this.mode === 'bridges' && step.phase === 'measure') { this.onBarePitch(step, freq); return; }
     const a4 = this.audio.a4;
     const cents = foldOctave(centsOff(freq, step.to, a4));
     const r = Math.round(cents);
+    const heard = pitchName(Math.round(freqToMidi(freq, a4)));
+    const name = STRING_NAMES[step.string - 1];
     if (Math.abs(cents) > 80) {
       this.inTune = [];
-      this.setNeedle(null);
-      const heard = Math.round(freqToMidi(freq, a4));
+      this.gauge.setHold(0);
       const others = this.target.open.map((p, i) => i).filter((i) => i + 1 !== step.string && Math.abs(centsOff(freq, this.target.open[i], a4)) < 35);
-      this.els.readout.textContent = others.length && Math.abs(cents) > 150
-        ? `That sounds like ${others.map((i) => STRING_NAMES[i]).join(' or ')} (${pitchName(this.target.open[others[0]])}). Pluck ${STRING_NAMES[step.string - 1]}.`
-        : `Hearing ${pitchName(heard)}, ${Math.abs(r) > 1200 ? 'far' : Math.abs(r) + ' cents'} ${cents < 0 ? 'low: slide the bridge toward you' : 'high: slide the bridge away from you'}.`;
+      const wrong = others.length > 0 && Math.abs(cents) > 150;
+      const cue = wrong
+        ? `That sounds like ${others.map((i) => STRING_NAMES[i]).join(' or ')}. Pluck ${name}.`
+        : cents < 0 ? 'Much too low · slide the bridge toward you' : 'Much too high · slide the bridge away from you';
+      this.gauge.update({ cents, heard, wrong });
+      this.say(cue);
       return;
     }
-    this.setNeedle(cents);
-    if (Math.abs(cents) <= TOLERANCE_CENTS) {
+    const abs = Math.abs(cents);
+    let cue;
+    if (abs <= TOLERANCE_CENTS) {
       this.inTune.push(cents);
-      this.els.readout.textContent = `In tune (${fmtCents(cents)}). Hold it…`;
-      if (this.inTune.length >= HOLD_READINGS) this.verify();
+      cue = 'In tune · hold it…';
+    } else if (abs <= TOLERANCE_CENTS * 2 && this.inTune.length) {
+      // a brief wobble just outside the window doesn't throw away the hold
+      cue = 'Almost · hold it…';
     } else {
       this.inTune = [];
-      this.els.readout.textContent = cents < 0
-        ? `${-r} cents low: slide the bridge toward you.`
-        : `${r} cents high: slide the bridge away from you.`;
+      cue = cents < 0 ? `↑ ${-r}¢ low · slide the bridge toward you` : `↓ ${r}¢ high · slide the bridge away from you`;
     }
+    this.gauge.update({ cents, heard });
+    this.gauge.setHold(this.inTune.length / HOLD_READINGS);
+    this.say(cue);
+    if (this.inTune.length >= HOLD_READINGS) this.verify();
   }
 
   verify() {
     const step = this.steps[this.index];
     step.status = 'verified';
     step.cents = this.inTune.reduce((a, b) => a + b, 0) / this.inTune.length;
+    step.justVerified = true;
     this.inTune = [];
+    const name = STRING_NAMES[step.string - 1];
     this.els.step.classList.add('in-tune');
-    this.els.readout.textContent = `Verified: ${STRING_NAMES[step.string - 1]} is in tune (${fmtCents(step.cents)}).`;
-    this.setNeedle(step.cents);
+    this.gauge.celebrate(`${name} is in tune`);
+    this.say(`✓ ${name} is in tune (${fmtCents(step.cents)})`);
+    // confirmation: chime (the detector is muted so it can't hear itself), buzz, and the string lights up
+    this.muteFor(1.2);
+    this.audio.chime();
+    try { navigator.vibrate?.(45); } catch { /* not supported */ }
+    this.koto.markTuned(step.string);
     this.renderChips();
+    step.justVerified = false;
     this.updateNextButton();
     const at = this.index;
-    this.advanceTimer = setTimeout(() => { if (this.index === at) this.go(at + 1); }, 1100);
+    this.advanceTimer = setTimeout(() => { if (this.index === at) this.go(at + 1); }, 1300);
   }
 }
 
