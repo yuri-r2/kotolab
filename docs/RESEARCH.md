@@ -75,6 +75,68 @@ Right-hand fingering uses a second dynamic-programming pass: thumb by default,
 the middle finger for reaches back toward 一 and for kaki-zume, thumb–index
 alternation for fast repeated notes, and thumb + middle for octave pairs.
 
+## Popular koto songs (November 2026)
+
+YouTube blocks automated access, so view counts could not be read directly.
+The picture below comes from search results, news coverage and koto-school
+repertoire lists.
+
+**Classical and teaching repertoire.** The National Diet Library names
+*Rokudan* as one of the best-known koto works, often taught to beginners, and
+*Haru no Umi* as a world-famous melody
+([NDL, “Koto melodies”](https://www.ndl.go.jp/kaleido/e/entry/24/1.html)).
+Beginner workshops start with *Sakura Sakura*
+([Shinjuku City koto workshop](https://www.city.shinjuku.lg.jp/event/30natsu_okoto.html);
+[Zen-On lesson plan](https://www.zen-on.co.jp/pdf/bk0501.pdf)). A koto school's
+song-by-tuning list covers the standard repertoire, including 六段, 黒髪,
+みだれ, 八段, 千鳥の曲, 茶音頭, 越後獅子 (arranged), 春の海, さくら and 鳩
+([美緒野会](https://shamisen.info/instrument/tuning_koto3_kyokumoku/)).
+*Usagi* is published in koto ensemble arrangements
+([Piascore](https://store.piascore.com/scores/66712)).
+
+**Covers.** The most-watched koto videos are covers of modern songs.
+WagakkiBand's *Senbonzakura* (koto in the line-up) passed 100 million views in
+2019 ([JRock News](https://jrocknews.com/2019/03/wagakkiband-senbonzakura-music-video-100-million-views.html)).
+Other widely shared koto covers include *Gurenge* (Demon Slayer), *History
+Maker* (Yuri!!! on Ice, a koto quartet by Kazushi Okimasa,
+[SoraNews24](https://soranews24.com/2016/12/08/traditional-japanese-rendition-of-yuri-on-ice-anime-theme-is-the-most-elegant-yet%E3%80%90video%E3%80%91/amp/)),
+Toto's *Africa* and *Stairway to Heaven*
+([Laughing Squid](https://laughingsquid.com/toto-africa-performed-on-traditional-japanese-koto/)),
+and J-pop and Vocaloid hits such as *Mesmerizer*, *Shōjo Rei*, YOASOBI's
+*Gunjō* and *Bling-Bang-Bang-Born*.
+
+**What KotoLab includes.** Songs marked ★ *Koto favourite* in the library:
+Sakura Sakura, Rokudan (opening), Kurokami, Echigo-jishi, Usagi and Hato.
+Added in this round, all public domain:
+
+| Song | Date | Source of the notes | Check |
+| --- | --- | --- | --- |
+| うさぎ Usagi | Edo-period warabe-uta | namineritsu singing DB (MusicXML, first verse) | matches kalz2q/gakufu (MIT) within one repeated note |
+| かごめかごめ Kagome Kagome | traditional | same | matches gakufu within two notes |
+| とおりゃんせ Tōryanse | traditional | same | matches gakufu within two notes |
+| ふるさと Furusato | 1914 | same | identical intervals to gakufu |
+| 紅葉 Momiji | 1911 | same | identical |
+| 朧月夜 Oborozukiyo | 1914 | same | identical |
+| 春が来た Haru ga Kita | 1910 | same | identical |
+| 茶摘 Chatsumi | 1912 | same | identical |
+| 鳩 Hato | 1911 | same | identical |
+| 菜蕗 Fuki (kumiuta, koto part) | 17th century | Davison & Apel transcription, Humdrum heterophony corpus (D. Huron) | single scholarly source |
+
+Koto string-notation arrangements were added for Usagi (hira-jōshi) and for
+Kagome Kagome, Furusato, Haru ga Kita and Chatsumi (nogi-jōshi, chosen
+because those melodies need the fewest presses there).
+
+**Not included.**
+* *Haru no Umi* (Miyagi Michio, 1929–30) is newer than KotoLab's
+  public-domain cut-off.
+* The covers above are copyrighted songs, so their melodies are not
+  reproduced. Use *Import MIDI* or *Import MusicXML* with a file you have the
+  right to use, and KotoLab arranges it for the chosen tuning.
+* *Haru no Ogawa* is out because today's lyrics are a 1947 revision.
+* *Edo Komoriuta*, *Hamabe no Uta*, *Hamachidori*, *Takeda no Komoriuta*,
+  *Chidori no Kyoku* and *Midare*, until a second independent source
+  confirms the melody.
+
 ## Bare strings and string tension
 
 On most kotos the strings have no pegs. Each one is knotted at the tail end

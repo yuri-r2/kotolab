@@ -110,6 +110,81 @@ export const SONG_LEVELS = {
   "level": 4,
   "tuning": "hira"
  },
+ "koto-doyo-usagi": {
+  "difficulty": 3.4,
+  "level": 2,
+  "tuning": "hira"
+ },
+ "koto-doyo-kagome": {
+  "difficulty": 3.8,
+  "level": 3,
+  "tuning": "nogi"
+ },
+ "koto-doyo-furusato": {
+  "difficulty": 4,
+  "level": 3,
+  "tuning": "nogi"
+ },
+ "koto-doyo-harugakita": {
+  "difficulty": 3.4,
+  "level": 2,
+  "tuning": "nogi"
+ },
+ "koto-doyo-chatsumi": {
+  "difficulty": 2.8,
+  "level": 2,
+  "tuning": "nogi"
+ },
+ "doyo-usagi": {
+  "difficulty": 2.8,
+  "level": 2,
+  "tuning": "nakazora"
+ },
+ "doyo-kagome": {
+  "difficulty": 3,
+  "level": 2,
+  "tuning": "nogi"
+ },
+ "doyo-toryanse": {
+  "difficulty": 4.9,
+  "level": 4,
+  "tuning": "nakazora"
+ },
+ "doyo-furusato": {
+  "difficulty": 4,
+  "level": 3,
+  "tuning": "nogi"
+ },
+ "doyo-momiji": {
+  "difficulty": 3.1,
+  "level": 2,
+  "tuning": "nogi"
+ },
+ "doyo-oborozukiyo": {
+  "difficulty": 3,
+  "level": 2,
+  "tuning": "gaku"
+ },
+ "doyo-harugakita": {
+  "difficulty": 3.4,
+  "level": 2,
+  "tuning": "gaku"
+ },
+ "doyo-hato": {
+  "difficulty": 3.2,
+  "level": 2,
+  "tuning": "nogi"
+ },
+ "doyo-chatsumi": {
+  "difficulty": 2.7,
+  "level": 2,
+  "tuning": "nogi"
+ },
+ "fuki": {
+  "difficulty": 3.3,
+  "level": 2,
+  "tuning": "hira"
+ },
  "meiji-01": {
   "difficulty": 4.9,
   "level": 4,

@@ -8,6 +8,7 @@
 
 import { MEIJI_SONGS } from './songs-meiji.js';
 import { KOTO_SONGS } from './songs-koto.js';
+import { DOYO_SONGS } from './songs-doyo.js';
 
 const BASE_SONGS = [
   {
@@ -216,4 +217,22 @@ C5q. A4e A4q F4q | G4q. F4e G4q A4q | F4q. D4e D4q C4q | F4h. rq |`,
   },
 ];
 
-export const SONGS = [...BASE_SONGS, ...KOTO_SONGS, ...MEIJI_SONGS];
+/**
+ * Koto favourites: pieces that koto students, teachers and players come back
+ * to most. Each tag carries the reason shown in the library (see
+ * docs/RESEARCH.md, "Popular koto songs", for the sources).
+ */
+export const FAVOURITES = {
+  sakura: 'The piece most koto beginners play first: koto workshops and school koto lessons start with it.',
+  rokudan: 'One of the best-known koto works and a standard teaching piece.',
+  'meiji-12': 'Kurokami is a jiuta classic in the standard koto teaching repertoire.',
+  'koto-meiji-12': 'Kurokami is a jiuta classic in the standard koto teaching repertoire.',
+  'koto-meiji-26': 'Koto schools teach an arrangement of the nagauta Echigo-jishi.',
+  'meiji-26': 'Koto schools teach an arrangement of the nagauta Echigo-jishi.',
+  'doyo-usagi': 'A standard first song on the koto, in hira-jōshi; also arranged for koto ensembles.',
+  'koto-doyo-usagi': 'A standard first song on the koto, in hira-jōshi; also arranged for koto ensembles.',
+  'doyo-hato': 'Koto schools teach it to beginners in hira-jōshi.',
+};
+
+export const SONGS = [...BASE_SONGS, ...KOTO_SONGS, ...DOYO_SONGS, ...MEIJI_SONGS]
+  .map((s) => (FAVOURITES[s.id] ? { ...s, favourite: FAVOURITES[s.id] } : s));

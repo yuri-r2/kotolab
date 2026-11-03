@@ -8,7 +8,7 @@ import { TabView, describe } from './views/tab.js';
 import { VerticalView } from './views/vertical.js';
 import { KotoView } from './views/koto.js';
 import { SONGS } from './songs.js';
-import { readMidi, midiToEvents, parseHumdrumKoto } from './importers.js';
+import { readMidi, midiToEvents, parseHumdrumKoto, parseMusicXML } from './importers.js';
 import { TuningGuide } from './guide.js';
 import { ScreenWake } from './wakelock.js';
 import { initTooltips } from './tooltip.js';
@@ -131,7 +131,11 @@ function renderLibrary() {
   list.innerHTML = '';
   const groups = new Map();
   if (byLevel) for (const tier of LEVEL_TIERS) groups.set(`Level ${tier.number} · ${tier.name}`, []);
-  const songs = allSongs().filter((s) => !q || `${s.title} ${s.jp || ''} ${s.composer || ''} ${s.category || ''}`.toLowerCase().includes(q));
+  const favOnly = !!state.favOnly;
+  $('favFilter').setAttribute('aria-pressed', String(favOnly));
+  const songs = allSongs()
+    .filter((s) => !favOnly || s.favourite)
+    .filter((s) => !q || `${s.title} ${s.jp || ''} ${s.composer || ''} ${s.category || ''} ${s.favourite ? 'favourite favorite popular' : ''}`.toLowerCase().includes(q));
   for (const s of songs) {
     const key = byLevel ? (() => { const t = LEVEL_TIERS[(levelOf(s).level || 3) - 1]; return `Level ${t.number} · ${t.name}`; })() : (s.user ? 'My songs' : s.category);
     if (!groups.has(key)) groups.set(key, []);
@@ -139,7 +143,7 @@ function renderLibrary() {
   }
   if (byLevel) for (const arr of groups.values()) arr.sort((a, b) => levelOf(a).difficulty - levelOf(b).difficulty);
   for (const [k, arr] of [...groups]) if (!arr.length) groups.delete(k);
-  if (!groups.size) list.innerHTML = '<p class="hint">No songs match. Try a shorter word, or import your own below.</p>';
+  if (!groups.size) list.innerHTML = `<p class="hint">No songs match${favOnly ? ' among the koto favourites' : ''}. Try a shorter word, or import your own below.</p>`;
   let i = 0;
   for (const [cat, items] of groups) {
     const det = document.createElement('details');
@@ -157,7 +161,8 @@ function renderLibrary() {
       const lv = levelOf(s);
       const kind = s.mode === 'strings' ? 'koto score' : 'arranged';
       const where = byLevel ? (s.user ? 'My songs' : s.category) : `Level ${lv.level}`;
-      b.innerHTML = `<span class="song-line"><span>${escapeHtml(s.title)}</span><span class="lv lv${lv.level}" data-tip="Level ${lv.level} of 5 · difficulty ${lv.difficulty} of 10">${lv.level}</span></span><small>${escapeHtml(s.jp ? s.jp + ' · ' : '')}${escapeHtml(kind)} · ${escapeHtml(where)}</small>`;
+      const fav = s.favourite ? `<span class="fav" data-tip="Koto favourite: ${escapeHtml(s.favourite)}" aria-label="Koto favourite">★</span>` : '';
+      b.innerHTML = `<span class="song-line"><span>${fav}${escapeHtml(s.title)}</span><span class="lv lv${lv.level}" data-tip="Level ${lv.level} of 5 · difficulty ${lv.difficulty} of 10">${lv.level}</span></span><small>${escapeHtml(s.jp ? s.jp + ' · ' : '')}${escapeHtml(kind)} · ${escapeHtml(where)}</small>`;
       b.addEventListener('click', () => { loadSong(s); closeLibrary(); });
       det.appendChild(b);
     }
@@ -222,6 +227,8 @@ function loadSong(song, { keepSettings = false } = {}) {
   $('songTitle').textContent = song.title;
   $('songJp').textContent = song.jp || '';
   $('songComposer').textContent = song.composer || '';
+  $('songFav').hidden = !song.favourite;
+  if (song.favourite) $('songFav').dataset.tip = song.favourite;
   $('songAbout').textContent = song.about || '';
   $('syllableLabel').textContent = song.syllables || 'Syllables';
   $('keepWrap').hidden = song.mode !== 'strings';
@@ -1119,6 +1126,22 @@ async function onKrnFile(file) {
   }
 }
 
+async function onXmlFile(file) {
+  try {
+    const res = parseMusicXML(await file.text());
+    const song = {
+      id: 'user-' + Date.now().toString(36), user: true, category: 'My songs',
+      title: res.title || file.name.replace(/\.\w+$/, ''), composer: res.composer || 'Imported from MusicXML', mode: 'pitch',
+      tuning: 'auto', base: 0, tempo: res.tempo || 80, timeSig: res.timeSig, syllables: 'Lyrics',
+      about: `Imported from MusicXML${res.parts.length > 1 ? ` (part “${res.parts[0]}”, first voice)` : ''}. KotoLab picks strings and presses for the tuning you choose.`,
+      score: eventsToText(res.events, res.timeSig, 'pitch'),
+    };
+    addImportedSong(song);
+  } catch (err) {
+    toast(`That file could not be read: ${err.message}`);
+  }
+}
+
 async function onJsonFile(file) {
   try {
     const data = JSON.parse(await file.text());
@@ -1248,6 +1271,8 @@ function bind() {
     loadSong(SONGS[0]);
   });
   $('midiFile').addEventListener('change', (e) => { if (e.target.files[0]) onMidiFile(e.target.files[0]); e.target.value = ''; closeLibrary(); });
+  $('xmlFile').addEventListener('change', (e) => { if (e.target.files[0]) onXmlFile(e.target.files[0]); e.target.value = ''; closeLibrary(); });
+  $('favFilter').addEventListener('click', () => { state.favOnly = !state.favOnly; renderLibrary(); });
   $('krnFile').addEventListener('change', (e) => { if (e.target.files[0]) onKrnFile(e.target.files[0]); e.target.value = ''; closeLibrary(); });
   $('jsonFile').addEventListener('change', (e) => { if (e.target.files[0]) onJsonFile(e.target.files[0]); e.target.value = ''; closeLibrary(); });
   $('midiImport').addEventListener('click', importMidi);

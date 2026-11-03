@@ -189,5 +189,100 @@ export const KOTO_SONGS = [
     "about": "Gonbe ga Tanemaku in hira-jōshi; quick eighth notes and leaps across the strings. Arranged for koto by KotoLab and written in koto string notation.",
     "arrangedFrom": "meiji-01",
     "score": "\ns5e~Gon s11e s10e~be s9e~ga | s8e~ta s8e@sukui~ne s7e~ma s8e~kya | s5e~ka s11e~ra s10e~su s9e~ga | s8e~ho s8e@sukui~ji s7e~ku s8e~ru |\ns5e~san s11e s10e~do s9e~ni | s8e~ich s8e@sukui~i s7e~do s8e~wa | s5e~o s11e~wa s10e~zu s9e~ba | s8e~na s8e@sukui~ru s7e~ma s8e~i |\ns7e~jun s8s~be s8s@sukui~ra s7e~jun s8s~be s8s@sukui~ra | s7e~gun s8s~be s8s@sukui~ra s5e~yo s6p2e | s6p2s s6p2s s6p2s s5s s4e s3e | s5e~mu s11e~ko s10e~u s9e~no |\ns8e~ko s8e@sukui~ya s7e~ma s8e~no | s5e~ko s11e~ma s10e~tsu s9e~no | s8e~ko s8e@sukui~ka s7e~gi s8e~ni | s5e~ju s11e s10e~ro s9e~ku |\ns8e~shi s8e@sukui~ma s7e~da s8e~ga | s5e~di s11e~ti s10e~ki s9e~te | s8e~ko s8e@sukui~ma s7e~ne s8e~ku | s5e~na s11e~ni s10e~ka s9e~wa |\ns8e~sa s8e@sukui~te s7e~o s8e~ki | s5e~ju s11e~ka s10e~zu s9e~ba | s8e~na s8e@sukui~ru s7e~ma s8e~i | s7e~zun s8s~be s8s@sukui~ra s7e~jun s8s~be s8s@sukui~ra |\ns7e~zun s8s~be s8s@sukui~ra s5e~yo s6p2e | s6p2s s6p2s s6p2s s5s s4e s3e |"
+  },
+  {
+    "id": "koto-doyo-usagi",
+    "title": "Usagi (koto)",
+    "jp": "うさぎ",
+    "composer": "Traditional warabe-uta (Edo period)",
+    "category": "Koto arrangements",
+    "mode": "strings",
+    "tuning": "hira",
+    "base": 0,
+    "tempo": 72,
+    "timeSig": [
+      2,
+      4
+    ],
+    "syllables": "Lyrics",
+    "about": "Usagi in hira-jōshi, the way koto teachers start beginners: almost every note on an open string, with one left-hand press near the end. Arranged for koto by KotoLab and written in koto string notation.",
+    "arrangedFrom": "doyo-usagi",
+    "score": "\ns6q~う s6e~さ s7e~ぎ | s8e~う s7e~さ s8e~ぎ re | s6e~な s6e@sukui~に s6e~み s7e~て | s8e~は s7e~ね s8e~る re |\ns7e~じゅ s8e~う s9e~ご s9e@sukui~や | s8e~お s7s~つ s7s@sukui~き s6e~さ s5e~ま | s7e~み s6e~て s5q~は | s6e~あ s5e~あ s4p2q~ね |\ns5h~る |"
+  },
+  {
+    "id": "koto-doyo-kagome",
+    "title": "Kagome Kagome (koto)",
+    "jp": "かごめかごめ",
+    "composer": "Traditional warabe-uta",
+    "category": "Koto arrangements",
+    "mode": "strings",
+    "tuning": "nogi",
+    "base": 0,
+    "tempo": 60,
+    "timeSig": [
+      2,
+      4
+    ],
+    "syllables": "Lyrics",
+    "about": "Kagome Kagome in nogi-jōshi, all on open strings, with scooped repeats (掬い爪) on the quick repeated notes. Arranged for koto by KotoLab and written in koto string notation.",
+    "arrangedFrom": "doyo-kagome",
+    "score": "\ns8q~か s8e~ご s9e~め | s8e~か s8e@sukui~ご s8e~め re | s8e~か s8s@sukui~ご s8s~の s8e@sukui~な s7s~か s7s@sukui~の | s8e~と s8s@sukui~り s7s~い s6e~わ re |\ns8e~い s7e~つ s8e~い s7e~つ | s8e~で s8s@sukui~や s7s~あ s6e~る re | s8e~よ s8e@sukui~あ s8e~け s9e~の | s8e~ば s8e@sukui~ん s8e~に re |\ns8e~つ s7s~る s7s@sukui~と s8e~か s7s~め s7s@sukui~が | s8e~す s8e@sukui~べっ s6e~た re | s8s~う s8s@sukui~し s8s~ろ s8s@sukui~の s8e~しょ s9s~め s9s@sukui~ん | s8e.~だ s7s~あ s8+s3e~れ re |"
+  },
+  {
+    "id": "koto-doyo-furusato",
+    "title": "Furusato (koto)",
+    "jp": "ふるさと",
+    "composer": "Okano Teiichi, lyrics Takano Tatsuyuki (1914)",
+    "category": "Koto arrangements",
+    "mode": "strings",
+    "tuning": "nogi",
+    "base": 0,
+    "tempo": 80,
+    "timeSig": [
+      3,
+      4
+    ],
+    "syllables": "Lyrics",
+    "about": "Furusato in nogi-jōshi, with octave pairs (合せ爪) on the long notes at the ends of phrases. Arranged for koto by KotoLab and written in koto string notation.",
+    "arrangedFrom": "doyo-furusato",
+    "score": "\ns7q~う s7q~さ s7q~ぎ | s8q.~お s9e~い s8q~し | s9q~か s9q~の s9p1q~や | s10+s5h~ま rq |\ns9p1q~こ s10q~ぶ s11q~な | s9q.~つ s9p1e~り s9q~し | s8q~か s8q~の s6p2q~か | s7+s2h~わ rq |\ns8e~ゆ s7e~う s8q~め s5q~わ | s7e~い s8e~い s9q~ま s9q~も | s9p1e~め s9e~え s9p1q.~ぐ s11e~う | s10e~り s9p1e~い s9q~て rq |\ns10q~わ s10q~す s10q~れ | s7q.~が s8e~た s9q~き | s9p1q~ふ s9p1q~る s8q~さ | s7+s2h~と rq |"
+  },
+  {
+    "id": "koto-doyo-harugakita",
+    "title": "Haru ga Kita (koto)",
+    "jp": "春が来た",
+    "composer": "Okano Teiichi, lyrics Takano Tatsuyuki (1910)",
+    "category": "Koto arrangements",
+    "mode": "strings",
+    "tuning": "nogi",
+    "base": 0,
+    "tempo": 120,
+    "timeSig": [
+      4,
+      4
+    ],
+    "syllables": "Lyrics",
+    "about": "Haru ga Kita in nogi-jōshi: short, lively and nearly all open strings. Arranged for koto by KotoLab and written in koto string notation.",
+    "arrangedFrom": "doyo-harugakita",
+    "score": "\ns5q~は s4e~る s4p1e~が s5q~き s6q~た | s5q~は s4e~る s4p1e~が s5q~き s7q~た | s6q~ど s5q~こ s4q.~に s2e~き | s3h.~た rq |\ns5q~や s6e~ま s5e~に s4q~き s5q~た | s7q~さ s8e~と s7e~に s6q~き s7q~た | s5q~の s9q~に s8q.~も s5e~き | s7+s2h.~た rq |"
+  },
+  {
+    "id": "koto-doyo-chatsumi",
+    "title": "Chatsumi (koto)",
+    "jp": "茶摘",
+    "composer": "Anonymous school song (1912)",
+    "category": "Koto arrangements",
+    "mode": "strings",
+    "tuning": "nogi",
+    "base": 0,
+    "tempo": 120,
+    "timeSig": [
+      4,
+      4
+    ],
+    "syllables": "Lyrics",
+    "about": "Chatsumi in nogi-jōshi, every note on an open string: a good first piece for steady eighth notes. Arranged for koto by KotoLab and written in koto string notation.",
+    "arrangedFrom": "doyo-chatsumi",
+    "score": "\nrw -w -q | | s5q~な s7q~つ s8q~も | s9q.~ち s9e~か s9q~ず s9q~く |\ns10q.~は s10e~ち s10q~じゅ s9q~う | s8q~は s7q~ち s8q~や rh | s9q~の s9q~に s10q~も | s9q.~や s9e~ま s9q~に s8q~も |\ns9q.~わ s9e~か s8q~ば s7q~が | s6q~し s6q~げ s5q~る rh | s5q~あ s7q~れ s8q~に | s9q.~み s9e~え s9q~る s9q~わ |\ns10q.~ちゃ s10e~つ s10q~み s9q~じゃ | s8q~な s7q~い s8q~か rh | s10q~あ s10q~か s9q~ね | s8q.~だ s8e~す s7q~き s6q~に |\ns5q~す s7q~げ s8q.~の s9e~か | s7+s2h.~さ rq |"
   }
 ];

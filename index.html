@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=deaf22c1">
+  <link rel="stylesheet" href="css/style.css?v=a3700837">
 </head>
 <body>
   <header class="topbar">
@@ -30,14 +30,16 @@
           <button id="orderLevel" aria-pressed="true" data-tip="Easiest (1) to hardest (5)">By level</button>
           <button id="orderCollection" aria-pressed="false" data-tip="Group by collection">By collection</button>
         </div>
+        <button class="fav-filter" id="favFilter" aria-pressed="false" data-tip="Show only koto favourites: the pieces koto players learn and play most"><span aria-hidden="true">★</span> Koto favourites</button>
         <div id="songList"></div>
         <section class="import">
           <h2>Add a song</h2>
           <label class="file-btn">Import MIDI file<input type="file" id="midiFile" accept=".mid,.midi,audio/midi"></label>
+          <label class="file-btn">Import MusicXML<input type="file" id="xmlFile" accept=".musicxml,.xml,application/vnd.recordare.musicxml+xml"></label>
           <label class="file-btn">Import Humdrum **koto<input type="file" id="krnFile" accept=".krn,.txt,.hmd"></label>
           <label class="file-btn">Open KotoLab song (.json)<input type="file" id="jsonFile" accept=".json,application/json"></label>
           <button class="file-btn" id="newSong">Write a new song</button>
-          <p class="hint">MIDI melodies are arranged automatically for the tuning you choose.</p>
+          <p class="hint">MIDI and MusicXML melodies (from MuseScore and other notation apps) are arranged automatically for the tuning you choose.</p>
         </section>
       </div>
     </aside>
@@ -46,7 +48,7 @@
       <section class="song-head">
         <div>
           <h1 id="songTitle">Sakura Sakura</h1>
-          <p class="song-meta"><span id="songJp" lang="ja"></span><span id="songComposer"></span></p>
+          <p class="song-meta"><span id="songJp" lang="ja"></span><span id="songComposer"></span><span class="fav-chip" id="songFav" hidden tabindex="0"><span aria-hidden="true">★</span> Koto favourite</span></p>
         </div>
         <p class="song-about" id="songAbout"></p>
       </section>
@@ -389,18 +391,19 @@ rq         quarter rest            q.  dotted       e3  triplet eighth
   <script type="importmap">
 {
   "imports": {
-    "./js/app.js": "./js/app.js?v=551d39d6",
+    "./js/app.js": "./js/app.js?v=4ffae918",
     "./js/audio.js": "./js/audio.js?v=0cbca01d",
     "./js/difficulty.js": "./js/difficulty.js?v=5e406908",
     "./js/engine.js": "./js/engine.js?v=1c53d51f",
     "./js/guide.js": "./js/guide.js?v=530d93d7",
-    "./js/importers.js": "./js/importers.js?v=7052aaed",
+    "./js/importers.js": "./js/importers.js?v=47b0ff14",
     "./js/notation.js": "./js/notation.js?v=fda80ddf",
     "./js/player.js": "./js/player.js?v=345bd9cb",
-    "./js/song-levels.js": "./js/song-levels.js?v=926f475e",
-    "./js/songs-koto.js": "./js/songs-koto.js?v=58e4635e",
+    "./js/song-levels.js": "./js/song-levels.js?v=c6a29732",
+    "./js/songs-doyo.js": "./js/songs-doyo.js?v=ced9ebe5",
+    "./js/songs-koto.js": "./js/songs-koto.js?v=1d35af85",
     "./js/songs-meiji.js": "./js/songs-meiji.js?v=28c93617",
-    "./js/songs.js": "./js/songs.js?v=27b801c7",
+    "./js/songs.js": "./js/songs.js?v=981316a9",
     "./js/techniques.js": "./js/techniques.js?v=3523b293",
     "./js/tooltip.js": "./js/tooltip.js?v=05127679",
     "./js/tuner.js": "./js/tuner.js?v=ed7b2744",
@@ -414,6 +417,6 @@ rq         quarter rest            q.  dotted       e3  triplet eighth
   }
 }
   </script>
-  <script type="module" src="js/app.js?v=551d39d6"></script>
+  <script type="module" src="js/app.js?v=4ffae918"></script>
 </body>
 </html>

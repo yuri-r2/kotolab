@@ -148,3 +148,106 @@ export function parseHumdrumKoto(text) {
   if (spine < 0) throw new Error('No **koto spine found in this file.');
   return { title, tuning, timeSig, events: normalizeEvents(events, timeSig) };
 }
+
+const STEP = { C: 0, D: 2, E: 4, F: 5, G: 7, A: 9, B: 11 };
+const tag = (src, name) => { const m = src.match(new RegExp(`<${name}\\b[^>]*>([\\s\\S]*?)</${name}>`)); return m ? m[1].trim() : null; };
+const decode = (s) => s && s.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&apos;/g, "'").replace(/&amp;/g, '&');
+
+/**
+ * Read an uncompressed MusicXML score (partwise), as exported by MuseScore,
+ * Finale, Sibelius, Dorico and most notation apps. Takes one part, one voice
+ * (the first), merges ties, keeps chords, the first verse of lyrics, the first
+ * time signature and tempo, and pads a pickup bar so bar lines line up.
+ * Works without a DOM, so it runs in the browser and in Node scripts.
+ */
+export function parseMusicXML(text, { part = 0 } = {}) {
+  if (/<score-timewise\b/.test(text)) throw new Error('Timewise MusicXML is not supported; export as partwise.');
+  if (!/<score-partwise\b/.test(text)) throw new Error('This is not a MusicXML score (compressed .mxl files need unzipping first).');
+  const parts = [...text.matchAll(/<part\s+id="([^"]*)"[^>]*>([\s\S]*?)<\/part>/g)];
+  if (!parts.length) throw new Error('No parts found in this MusicXML file.');
+  const partNames = [...text.matchAll(/<score-part\s+id="([^"]*)"[^>]*>([\s\S]*?)<\/score-part>/g)].map((m) => decode(tag(m[2], 'part-name')) || m[1]);
+  const body = parts[Math.min(part, parts.length - 1)][2];
+  const title = decode(tag(text, 'work-title') || tag(text, 'movement-title') || '');
+  const composer = decode((text.match(/<creator[^>]*type="composer"[^>]*>([^<]*)<\/creator>/) || [])[1] || '');
+  let divisions = 1, timeSig = null, tempo = null, fifths = 0, voice = null;
+  const events = [];
+  let t = 0;          // in quarter notes
+  let firstBarLen = null;
+  let barStart = 0, barMax = 0;
+  const measures = [...body.matchAll(/<measure\b([^>]*)>([\s\S]*?)<\/measure>/g)];
+  measures.forEach((mm, mi) => {
+    const attrs = mm[1];
+    barStart = t; barMax = t;
+    // walk the measure's children in order
+    for (const el of mm[2].matchAll(/<(attributes|note|backup|forward|direction|sound)\b[^>]*?(?:\/>|>([\s\S]*?)<\/\1>)/g)) {
+      const kind = el[1];
+      const inner = el[2] || '';
+      if (kind === 'attributes') {
+        const dv = tag(inner, 'divisions'); if (dv) divisions = Number(dv);
+        const beats = tag(inner, 'beats'), bt = tag(inner, 'beat-type');
+        if (beats && bt && !timeSig) timeSig = [Number(beats), Number(bt)];
+        const f = tag(inner, 'fifths'); if (f != null && mi === 0) fifths = Number(f);
+      } else if (kind === 'direction' || kind === 'sound') {
+        const pm = (el[0].match(/tempo="([\d.]+)"/) || [])[1] || tag(inner, 'per-minute');
+        if (pm && tempo == null) tempo = Math.round(Number(pm));
+      } else if (kind === 'backup') {
+        t -= Number(tag(inner, 'duration') || 0) / divisions;
+      } else if (kind === 'forward') {
+        t += Number(tag(inner, 'duration') || 0) / divisions;
+        barMax = Math.max(barMax, t);
+      } else if (kind === 'note') {
+        if (/<grace\b/.test(inner) || /<cue\s*\/>/.test(inner)) continue;
+        const v = tag(inner, 'voice') || '1';
+        const isChord = /<chord\s*\/>/.test(inner);
+        const d = Number(tag(inner, 'duration') || 0) / divisions;
+        if (voice == null) voice = v;
+        if (v !== voice) { if (!isChord) t += d; barMax = Math.max(barMax, t); continue; }
+        const rest = /<rest\b/.test(inner);
+        let pitch = null;
+        if (!rest) {
+          const p = tag(inner, 'pitch');
+          if (p) {
+            const step = tag(p, 'step'), oct = Number(tag(p, 'octave')), alter = Number(tag(p, 'alter') || 0);
+            pitch = 12 * (oct + 1) + STEP[step] + Math.round(alter);
+          }
+        }
+        const tieStop = /<tie\s+type="stop"/.test(inner);
+        const lyricBlock = (inner.match(/<lyric\b[^>]*>([\s\S]*?)<\/lyric>/) || [])[1];
+        const lyric = lyricBlock ? decode(tag(lyricBlock, 'text')) : null;
+        if (isChord) {
+          const prev = events[events.length - 1];
+          if (prev && !prev.rest && pitch != null && !prev.notes.some((n) => n.pitch === pitch)) prev.notes.push({ pitch });
+          continue;
+        }
+        const prev = events[events.length - 1];
+        if (tieStop && prev && !prev.rest && pitch != null && prev.notes.some((n) => n.pitch === pitch) && Math.abs(prev.t + prev.d - t) < EPS) {
+          prev.d += d;
+        } else if (d > 0) {
+          events.push({ t, d, rest: rest || pitch == null, notes: rest || pitch == null ? [] : [{ pitch }], techs: [], finger: null, shoga: lyric || null, token: null });
+        }
+        t += d;
+        barMax = Math.max(barMax, t);
+      }
+    }
+    t = Math.max(t, barMax);
+    if (mi === 0) firstBarLen = t - barStart;
+  });
+  timeSig = timeSig || [4, 4];
+  const bb = barBeats(timeSig);
+  // pickup: a short first bar is padded at the front so the bars line up
+  const pad = firstBarLen != null && firstBarLen < bb - EPS && firstBarLen > EPS ? bb - firstBarLen : 0;
+  for (const ev of events) ev.t += pad;
+  // merge consecutive rests
+  const merged = [];
+  for (const ev of events) {
+    const prev = merged[merged.length - 1];
+    if (ev.rest && prev && prev.rest && Math.abs(prev.t + prev.d - ev.t) < EPS) prev.d += ev.d;
+    else merged.push(ev);
+  }
+  // drop leading whole bars of rest
+  const firstNote = merged.find((e) => !e.rest);
+  const shift = firstNote ? Math.floor(firstNote.t / bb + EPS) * bb : 0;
+  const out = merged.filter((e) => !(e.rest && e.t + e.d <= shift + EPS)).map((e) => ({ ...e, t: e.t - shift }));
+  if (!out.some((e) => !e.rest)) throw new Error('No notes found in the first voice of this part.');
+  return { title, composer, tempo, timeSig, fifths, parts: partNames, lyrics: out.some((e) => e.shoga), events: normalizeEvents(out, timeSig) };
+}

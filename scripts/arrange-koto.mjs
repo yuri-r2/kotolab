@@ -25,6 +25,11 @@ const SPECS = [
   { from: 'meiji-12', tuning: 'hira', about: 'Kurokami, a jiuta classic for voice with shamisen or koto, written out for koto in hira-jōshi. A good study in presses (押し手).' },
   { from: 'meiji-26', tuning: 'kumoi', about: 'Echigo-jishi in kumoi-jōshi: lively, with many presses — an intermediate study.' },
   { from: 'meiji-01', tuning: 'hira', about: 'Gonbe ga Tanemaku in hira-jōshi; quick eighth notes and leaps across the strings.' },
+  { from: 'doyo-usagi', tuning: 'hira', title: 'Usagi', about: 'Usagi in hira-jōshi, the way koto teachers start beginners: almost every note on an open string, with one left-hand press near the end.' },
+  { from: 'doyo-kagome', tuning: 'nogi', title: 'Kagome Kagome', about: 'Kagome Kagome in nogi-jōshi, all on open strings, with scooped repeats (掬い爪) on the quick repeated notes.' },
+  { from: 'doyo-furusato', tuning: 'nogi', title: 'Furusato', about: 'Furusato in nogi-jōshi, with octave pairs (合せ爪) on the long notes at the ends of phrases.' },
+  { from: 'doyo-harugakita', tuning: 'nogi', title: 'Haru ga Kita', about: 'Haru ga Kita in nogi-jōshi: short, lively and nearly all open strings.' },
+  { from: 'doyo-chatsumi', tuning: 'nogi', title: 'Chatsumi', about: 'Chatsumi in nogi-jōshi, every note on an open string: a good first piece for steady eighth notes.' },
 ];
 
 const arranged = [];
