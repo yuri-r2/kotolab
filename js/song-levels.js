@@ -21,14 +21,14 @@ export const SONG_LEVELS = {
   "tuning": "kokin"
  },
  "twinkle": {
-  "difficulty": 3.9,
-  "level": 3,
-  "tuning": "gaku"
+  "difficulty": 2.4,
+  "level": 1,
+  "tuning": "diatonic"
  },
  "ode": {
-  "difficulty": 3.6,
-  "level": 3,
-  "tuning": "gaku"
+  "difficulty": 2.6,
+  "level": 1,
+  "tuning": "dan-tranh-nam"
  },
  "amazing": {
   "difficulty": 1.9,
@@ -36,29 +36,29 @@ export const SONG_LEVELS = {
   "tuning": "nogi"
  },
  "greensleeves": {
-  "difficulty": 5.6,
-  "level": 5,
-  "tuning": "gaku"
+  "difficulty": 3.7,
+  "level": 3,
+  "tuning": "chromatic-middle"
  },
  "silentnight": {
-  "difficulty": 4,
-  "level": 3,
-  "tuning": "gaku"
+  "difficulty": 2.7,
+  "level": 2,
+  "tuning": "diatonic"
  },
  "birthday": {
-  "difficulty": 4.1,
-  "level": 3,
-  "tuning": "nogi"
+  "difficulty": 3,
+  "level": 2,
+  "tuning": "diatonic"
  },
  "furelise": {
-  "difficulty": 6.4,
-  "level": 5,
-  "tuning": "nogi"
+  "difficulty": 5,
+  "level": 4,
+  "tuning": "dan-tranh-nam"
  },
  "auldlangsyne": {
   "difficulty": 2.2,
   "level": 1,
-  "tuning": "nogi"
+  "tuning": "dan-tranh-nam"
  },
  "koto-akatonbo": {
   "difficulty": 2.4,
@@ -138,7 +138,7 @@ export const SONG_LEVELS = {
  "doyo-usagi": {
   "difficulty": 2.8,
   "level": 2,
-  "tuning": "nakazora"
+  "tuning": "diatonic"
  },
  "doyo-kagome": {
   "difficulty": 3,
@@ -146,29 +146,29 @@ export const SONG_LEVELS = {
   "tuning": "nogi"
  },
  "doyo-toryanse": {
-  "difficulty": 4.9,
+  "difficulty": 4.7,
   "level": 4,
-  "tuning": "nakazora"
+  "tuning": "diatonic"
  },
  "doyo-furusato": {
-  "difficulty": 4,
-  "level": 3,
-  "tuning": "nogi"
+  "difficulty": 2.5,
+  "level": 1,
+  "tuning": "diatonic"
  },
  "doyo-momiji": {
-  "difficulty": 3.1,
-  "level": 2,
-  "tuning": "nogi"
+  "difficulty": 2.6,
+  "level": 1,
+  "tuning": "dan-tranh-nam"
  },
  "doyo-oborozukiyo": {
-  "difficulty": 3,
+  "difficulty": 2.7,
   "level": 2,
-  "tuning": "gaku"
+  "tuning": "diatonic"
  },
  "doyo-harugakita": {
-  "difficulty": 3.4,
+  "difficulty": 2.8,
   "level": 2,
-  "tuning": "gaku"
+  "tuning": "diatonic"
  },
  "doyo-hato": {
   "difficulty": 3.2,
@@ -186,14 +186,14 @@ export const SONG_LEVELS = {
   "tuning": "hira"
  },
  "meiji-01": {
-  "difficulty": 4.9,
-  "level": 4,
-  "tuning": "hira"
+  "difficulty": 4.2,
+  "level": 3,
+  "tuning": "diatonic"
  },
  "meiji-02": {
-  "difficulty": 5.1,
+  "difficulty": 4.5,
   "level": 4,
-  "tuning": "kokin"
+  "tuning": "blues"
  },
  "meiji-03": {
   "difficulty": 4.1,
@@ -201,9 +201,9 @@ export const SONG_LEVELS = {
   "tuning": "kokin"
  },
  "meiji-04": {
-  "difficulty": 3.1,
+  "difficulty": 3,
   "level": 2,
-  "tuning": "gaku"
+  "tuning": "diatonic"
  },
  "meiji-05": {
   "difficulty": 4.4,
@@ -221,9 +221,9 @@ export const SONG_LEVELS = {
   "tuning": "kokin"
  },
  "meiji-08": {
-  "difficulty": 3.7,
+  "difficulty": 3.8,
   "level": 3,
-  "tuning": "gaku"
+  "tuning": "dan-tranh-nam"
  },
  "meiji-09": {
   "difficulty": 3.2,
@@ -231,14 +231,14 @@ export const SONG_LEVELS = {
   "tuning": "nogi"
  },
  "meiji-10": {
-  "difficulty": 3.5,
-  "level": 3,
-  "tuning": "gaku"
+  "difficulty": 3.4,
+  "level": 2,
+  "tuning": "blues"
  },
  "meiji-11": {
-  "difficulty": 3.1,
+  "difficulty": 2.7,
   "level": 2,
-  "tuning": "hira"
+  "tuning": "diatonic"
  },
  "meiji-12": {
   "difficulty": 3.9,
@@ -246,9 +246,9 @@ export const SONG_LEVELS = {
   "tuning": "hira"
  },
  "meiji-13": {
-  "difficulty": 3.6,
-  "level": 3,
-  "tuning": "hira"
+  "difficulty": 2.7,
+  "level": 2,
+  "tuning": "diatonic"
  },
  "meiji-14": {
   "difficulty": 3.5,
@@ -286,9 +286,9 @@ export const SONG_LEVELS = {
   "tuning": "hira"
  },
  "meiji-21": {
-  "difficulty": 3.4,
+  "difficulty": 3.1,
   "level": 2,
-  "tuning": "nogi"
+  "tuning": "dan-tranh-nam"
  },
  "meiji-22": {
   "difficulty": 3.5,
@@ -311,18 +311,48 @@ export const SONG_LEVELS = {
   "tuning": "hira"
  },
  "meiji-26": {
-  "difficulty": 4.7,
-  "level": 4,
-  "tuning": "kumoi"
- },
- "meiji-27": {
   "difficulty": 3.9,
   "level": 3,
-  "tuning": "kokin"
+  "tuning": "diatonic"
+ },
+ "meiji-27": {
+  "difficulty": 3.5,
+  "level": 3,
+  "tuning": "diatonic"
  },
  "meiji-28": {
   "difficulty": 4.1,
   "level": 3,
   "tuning": "hira"
+ },
+ "molihua": {
+  "difficulty": 2.9,
+  "level": 2,
+  "tuning": "guzheng-pentatonic"
+ },
+ "chinese-air-1": {
+  "difficulty": 2.5,
+  "level": 1,
+  "tuning": "diatonic"
+ },
+ "chinese-air-2": {
+  "difficulty": 2.5,
+  "level": 1,
+  "tuning": "diatonic"
+ },
+ "qua-cau-gio-bay": {
+  "difficulty": 3.4,
+  "level": 2,
+  "tuning": "gaku"
+ },
+ "ly-ngua-o": {
+  "difficulty": 3,
+  "level": 2,
+  "tuning": "dan-tranh-nam"
+ },
+ "gu-arirang": {
+  "difficulty": 2.2,
+  "level": 1,
+  "tuning": "gayageum-pentatonic"
  }
 };

@@ -21,11 +21,13 @@ export class Player {
     this.position = 0;
     this.timer = null;
     this.raf = null;
+    this.playRequest = 0;
   }
 
   load(arr) {
     const wasPlaying = this.playing;
     if (wasPlaying) this.pause();
+    else this.playRequest++;
     this.arr = arr;
     this.total = arr.measures.length * barBeats(arr.timeSig);
     this.position = Math.min(this.position, this.total);
@@ -37,11 +39,13 @@ export class Player {
   }
 
   async play(from = this.position, { countIn = this.countIn } = {}) {
-    if (!this.arr) return;
+    if (!this.arr || this.playing) return;
+    const request = ++this.playRequest;
     const ctx = this.audio.ensure();
     const pitches = [];
     for (const ev of this.arr.events) for (const n of ev.notes) if (n.string) { pitches.push(n.pitch); if (n.string < 13) pitches.push(this.arr.open[n.string]); }
     await this.audio.prepare(pitches);
+    if (request !== this.playRequest) return;
     if (this.loop && (from < this.loop.start - EPS || from >= this.loop.end - EPS)) from = this.loop.start;
     if (from >= this.total - EPS) from = 0;
     let start = ctx.currentTime + 0.08;
@@ -142,6 +146,7 @@ export class Player {
   }
 
   halt() {
+    this.playRequest++;
     this.playing = false;
     clearInterval(this.timer);
     cancelAnimationFrame(this.raf);
@@ -151,6 +156,7 @@ export class Player {
   seek(beat) {
     const was = this.playing;
     if (was) this.halt();
+    else this.playRequest++;
     this.position = Math.max(0, Math.min(beat, this.total));
     this.onTick && this.onTick(this.position);
     if (was) this.play(this.position, { countIn: false });

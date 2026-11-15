@@ -16,8 +16,15 @@ const INTERVALS = ['unison', 'minor second', 'major second', 'minor third', 'maj
 export function planTuningSteps(fromOpen, toOpen) {
   let order;
   if (!fromOpen) {
-    // reference string first, then its unison and octave, then the rest
-    order = [1, 5, 10, 2, 3, 4, 6, 7, 8, 9, 11, 12, 13];
+    const strings = toOpen.map((_, i) => i + 1);
+    const referenceRank = (s) => {
+      const diff = toOpen[s - 1] - toOpen[0];
+      return diff % 12 === 0 ? Math.abs(diff) : Infinity;
+    };
+    order = strings.sort((a, b) => {
+      if (referenceRank(a) === referenceRank(b)) return a - b;
+      return referenceRank(a) - referenceRank(b);
+    });
   } else {
     order = toOpen.map((p, i) => (p !== fromOpen[i] ? i + 1 : 0)).filter(Boolean);
   }
@@ -58,8 +65,7 @@ export function describeCheck(step) {
 
 /** Steps for checking every string without moving any bridge. */
 export function planCheckSteps(toOpen) {
-  // same order as tuning from scratch (一 first, then 五, 十 …) so each string
-  // can be compared with one that is already right
+  // Check string 一 and its matching pitches first.
   return planTuningSteps(null, toOpen).map((s) => ({ ...s, from: s.to, check: true }));
 }
 

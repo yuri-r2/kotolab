@@ -9,6 +9,9 @@
 import { MEIJI_SONGS } from './songs-meiji.js';
 import { KOTO_SONGS } from './songs-koto.js';
 import { DOYO_SONGS } from './songs-doyo.js';
+import { WORLD_SONGS } from './songs-world.js';
+
+export const TRADITIONS = ['Japanese', 'Chinese', 'Vietnamese', 'Korean', 'European', 'American', 'My songs'];
 
 const BASE_SONGS = [
   {
@@ -85,7 +88,7 @@ E4q E4q A4q B4q | C5q B4q A4h | F4q F4q E4q D4q | E4w |
 E4q E4q A4q B4q | C5q B4q A4h | F4q D4q E4q E4q | A3w |`,
   },
   {
-    id: 'twinkle',
+    id: 'twinkle', tradition: 'European',
     title: 'Twinkle, Twinkle, Little Star',
     composer: 'Traditional (French melody)',
     category: 'Popular & folk',
@@ -94,14 +97,14 @@ E4q E4q A4q B4q | C5q B4q A4h | F4q D4q E4q E4q | A3w |`,
     base: 0,
     tempo: 96,
     timeSig: [4, 4],
-    about: 'A first exercise in pressing: a major scale needs the 4th degree, which pentatonic koto tunings lack.',
+    about: 'A beginner melody in the diatonic tuning. Try hira-jōshi if you want to practice adding the missing scale notes with presses.',
     score: `
 C4q C4q G4q G4q | A4q A4q G4h | F4q F4q E4q E4q | D4q D4q C4h |
 G4q G4q F4q F4q | E4q E4q D4h | G4q G4q F4q F4q | E4q E4q D4h |
 C4q C4q G4q G4q | A4q A4q G4h | F4q F4q E4q E4q | D4q D4q C4h |`,
   },
   {
-    id: 'ode',
+    id: 'ode', tradition: 'European',
     title: 'Ode to Joy',
     composer: 'Ludwig van Beethoven (1824)',
     category: 'Popular & folk',
@@ -110,7 +113,7 @@ C4q C4q G4q G4q | A4q A4q G4h | F4q F4q E4q E4q | D4q D4q C4h |`,
     base: 0,
     tempo: 100,
     timeSig: [4, 4],
-    about: 'Stepwise motion across five neighbouring notes. Watch how the arrangement uses presses for the half steps.',
+    about: 'A mostly stepwise melody. Keep an even pulse through the repeated notes, then give the eighth-note turns a little lift.',
     score: `
 F#4q F#4q G4q A4q | A4q G4q F#4q E4q | D4q D4q E4q F#4q | F#4q. E4e E4h |
 F#4q F#4q G4q A4q | A4q G4q F#4q E4q | D4q D4q E4q F#4q | E4q. D4e D4h |
@@ -118,7 +121,7 @@ E4q E4q F#4q D4q | E4q F#4e G4e F#4q D4q | E4q F#4e G4e F#4q E4q | D4q E4q A3h |
 F#4q F#4q G4q A4q | A4q G4q F#4q E4q | D4q D4q E4q F#4q | E4q. D4e D4h |`,
   },
   {
-    id: 'amazing',
+    id: 'amazing', tradition: 'American',
     title: 'Amazing Grace',
     composer: 'Traditional (“New Britain”)',
     category: 'Popular & folk',
@@ -135,7 +138,7 @@ D5h B4e D5e | B4h G4q | D4h E4q | G4h E4q | D4h D4q |
 G4h B4e G4e | B4h A4q | G4h. |`,
   },
   {
-    id: 'greensleeves',
+    id: 'greensleeves', tradition: 'European',
     title: 'Greensleeves',
     composer: 'Traditional English (16th c.)',
     category: 'Popular & folk',
@@ -153,7 +156,7 @@ G5q. G5e. F#5s E5e | D5q B4e G4e. A4s B4e | C5q A4e A4e. G#4s A4e | B4q G#4e E4q
 G5q. G5e. F#5s E5e | D5q B4e G4e. A4s B4e | C5e. B4s A4e G#4e. F#4s G#4e | A4h. |`,
   },
   {
-    id: 'silentnight',
+    id: 'silentnight', tradition: 'European',
     title: 'Silent Night',
     composer: 'Franz Xaver Gruber (1818)',
     category: 'Popular & folk',
@@ -169,7 +172,7 @@ A4q A4e C5e. B4s A4e | G4e. A4s G4e E4q. | A4q A4e C5e. B4s A4e | G4e. A4s G4e E
 D5q D5e F5e. D5s B4e | C5q. E5q. | C5e. G4s E4e G4e. F4s D4e | C4h. |`,
   },
   {
-    id: 'birthday',
+    id: 'birthday', tradition: 'American',
     title: 'Happy Birthday',
     composer: 'Mildred & Patty Hill (1893)',
     category: 'Popular & folk',
@@ -184,7 +187,7 @@ rh C4e. C4s | D4q C4q F4q | E4h C4e. C4s | D4q C4q G4q | F4h C4e. C4s |
 C5q A4q F4q | E4q D4q Bb4e. Bb4s | A4q F4q G4q | F4h. |`,
   },
   {
-    id: 'furelise',
+    id: 'furelise', tradition: 'European',
     title: 'Für Elise (theme)',
     composer: 'Ludwig van Beethoven (1810)',
     category: 'Popular & folk',
@@ -193,14 +196,14 @@ C5q A4q F4q | E4q D4q Bb4e. Bb4s | A4q F4q G4q | F4h. |`,
     base: 0,
     tempo: 66,
     timeSig: [3, 8],
-    about: 'The chromatic E–D♯ trill is only possible with a half-step press. A demanding left-hand study at speed; start at half tempo.',
+    about: 'The opening alternates two pitches a half step apart. Start at half tempo, especially in tunings that require a press for the lower or upper pitch.',
     score: `
 rq E5s D#5s |
 E5s D#5s E5s B4s D5s C5s | A4e rs C4s E4s A4s | B4e rs E4s G#4s B4s | C5e rs E4s E5s D#5s |
 E5s D#5s E5s B4s D5s C5s | A4e rs C4s E4s A4s | B4e rs E4s C5s B4s | A4q. |`,
   },
   {
-    id: 'auldlangsyne',
+    id: 'auldlangsyne', tradition: 'European',
     title: 'Auld Lang Syne (Hotaru no Hikari)',
     jp: '蛍の光',
     composer: 'Traditional Scottish',
@@ -217,22 +220,20 @@ C5q. A4e A4q F4q | G4q. F4e G4q A4q | F4q. D4e D4q C4q | F4h. rq |`,
   },
 ];
 
-/**
- * Koto favourites: pieces that koto students, teachers and players come back
- * to most. Each tag carries the reason shown in the library (see
- * docs/RESEARCH.md, "Popular koto songs", for the sources).
- */
-export const FAVOURITES = {
-  sakura: 'The piece most koto beginners play first: koto workshops and school koto lessons start with it.',
-  rokudan: 'One of the best-known koto works and a standard teaching piece.',
-  'meiji-12': 'Kurokami is a jiuta classic in the standard koto teaching repertoire.',
-  'koto-meiji-12': 'Kurokami is a jiuta classic in the standard koto teaching repertoire.',
-  'koto-meiji-26': 'Koto schools teach an arrangement of the nagauta Echigo-jishi.',
-  'meiji-26': 'Koto schools teach an arrangement of the nagauta Echigo-jishi.',
-  'doyo-usagi': 'A standard first song on the koto, in hira-jōshi; also arranged for koto ensembles.',
-  'koto-doyo-usagi': 'A standard first song on the koto, in hira-jōshi; also arranged for koto ensembles.',
-  'doyo-hato': 'Koto schools teach it to beginners in hira-jōshi.',
-};
+export const SONGS = [...BASE_SONGS, ...KOTO_SONGS, ...DOYO_SONGS, ...MEIJI_SONGS, ...WORLD_SONGS]
+  .map((song) => ({ tradition: 'Japanese', ...song }));
 
-export const SONGS = [...BASE_SONGS, ...KOTO_SONGS, ...DOYO_SONGS, ...MEIJI_SONGS]
-  .map((s) => (FAVOURITES[s.id] ? { ...s, favourite: FAVOURITES[s.id] } : s));
+export function songTradition(song) {
+  return song.user ? 'My songs' : song.tradition;
+}
+
+export function searchSongs(songs, query, tradition = '') {
+  const normalize = (text) => text.normalize('NFD').replace(/\p{M}/gu, '').toLowerCase().replaceAll('đ', 'd');
+  const terms = normalize(query).split(/\s+/).filter(Boolean);
+  return songs.filter((song) => {
+    if (tradition && songTradition(song) !== tradition) return false;
+    if (!terms.length) return true;
+    const text = normalize([song.title, song.nativeTitle, song.jp, song.composer, song.category, songTradition(song)].join(' '));
+    return terms.every((term) => text.includes(term));
+  });
+}

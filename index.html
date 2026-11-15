@@ -9,7 +9,7 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Shippori+Mincho+B1:wght@500;700;800&family=Zen+Kaku+Gothic+New:wght@400;500;700&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="css/style.css?v=a3700837">
+  <link rel="stylesheet" href="css/style.css?v=10514790">
 </head>
 <body>
   <header class="topbar">
@@ -27,10 +27,13 @@
       <div class="library-scroll">
         <label class="song-search"><span class="sr-only">Find a song</span><input type="search" id="songSearch" placeholder="Find a song…" autocomplete="off"></label>
         <div class="lib-order" role="group" aria-label="Order songs by">
-          <button id="orderLevel" aria-pressed="true" data-tip="Easiest (1) to hardest (5)">By level</button>
-          <button id="orderCollection" aria-pressed="false" data-tip="Group by collection">By collection</button>
+          <button id="orderLevel" aria-pressed="false" data-tip="Easiest (1) to hardest (5)">By level</button>
+          <button id="orderTradition" aria-pressed="true">By tradition</button>
         </div>
-        <button class="fav-filter" id="favFilter" aria-pressed="false" data-tip="Show only koto favourites: the pieces koto players learn and play most"><span aria-hidden="true">★</span> Koto favourites</button>
+        <label class="tradition-filter">
+          <span class="sr-only">Filter by musical tradition</span>
+          <select id="traditionFilter"><option value="">All traditions</option></select>
+        </label>
         <div id="songList"></div>
         <section class="import">
           <h2>Add a song</h2>
@@ -48,9 +51,10 @@
       <section class="song-head">
         <div>
           <h1 id="songTitle">Sakura Sakura</h1>
-          <p class="song-meta"><span id="songJp" lang="ja"></span><span id="songComposer"></span><span class="fav-chip" id="songFav" hidden tabindex="0"><span aria-hidden="true">★</span> Koto favourite</span></p>
+          <p class="song-meta"><span id="songNativeTitle" class="native-title" hidden></span><span id="songComposer"></span></p>
         </div>
         <p class="song-about" id="songAbout"></p>
+        <a class="song-source" id="songSource" target="_blank" rel="noopener noreferrer" hidden>Melody source</a>
       </section>
 
       <div class="main-tabs" role="tablist" aria-label="Song views">
@@ -148,7 +152,7 @@
           </div>
           <label class="field">
             <span>Tuning <button type="button" class="tip" data-tip="Where the 13 bridges stand, so which note each open string plays." aria-label="About Tuning">i</button></span>
-            <select id="tuningSelect"></select>
+            <select id="tuningSelect" aria-describedby="tuningDescription"></select>
           </label>
           <label class="field">
             <span>Key: pitch of string 一 <button type="button" class="tip" data-tip="Pitch of string 一 (farthest from you). Raises or lowers the whole tuning. D is usual." aria-label="About Key">i</button></span>
@@ -180,6 +184,7 @@
             </select>
           </label>
           <label class="check" id="keepWrap" data-tip="Use the strings the score was written for."><input type="checkbox" id="keepStrings" checked> Keep the original string choices</label>
+          <p class="hint tuning-description" id="tuningDescription" hidden></p>
         </section>
 
 
@@ -259,6 +264,10 @@
           <h2>Tuning advisor <button type="button" class="tip" data-tip="Tunings ranked by how easy this song is in each." aria-label="About Tuning advisor">i</button></h2>
           <p class="muted small">Every tuning, at its best transposition, ranked by how easy this song is to play.</p>
           <ol class="advisor" id="advisor"></ol>
+          <details class="advisor-more" id="advisorMore" hidden>
+            <summary id="advisorCount">Show more tunings</summary>
+            <ol class="advisor" id="advisorRest"></ol>
+          </details>
           <button class="wide-btn" id="fitBridges" data-tip="Suggests a few bridge moves that make this song easier.">Fit the bridges to this song</button>
           <p class="muted small" id="fitNote"></p>
         </section>
@@ -391,23 +400,24 @@ rq         quarter rest            q.  dotted       e3  triplet eighth
   <script type="importmap">
 {
   "imports": {
-    "./js/app.js": "./js/app.js?v=4ffae918",
+    "./js/app.js": "./js/app.js?v=213fcfd0",
     "./js/audio.js": "./js/audio.js?v=0cbca01d",
     "./js/difficulty.js": "./js/difficulty.js?v=5e406908",
     "./js/engine.js": "./js/engine.js?v=1c53d51f",
-    "./js/guide.js": "./js/guide.js?v=530d93d7",
+    "./js/guide.js": "./js/guide.js?v=dfdaab65",
     "./js/importers.js": "./js/importers.js?v=47b0ff14",
     "./js/notation.js": "./js/notation.js?v=fda80ddf",
-    "./js/player.js": "./js/player.js?v=345bd9cb",
-    "./js/song-levels.js": "./js/song-levels.js?v=c6a29732",
+    "./js/player.js": "./js/player.js?v=c80f6230",
+    "./js/song-levels.js": "./js/song-levels.js?v=a345f817",
     "./js/songs-doyo.js": "./js/songs-doyo.js?v=ced9ebe5",
     "./js/songs-koto.js": "./js/songs-koto.js?v=1d35af85",
     "./js/songs-meiji.js": "./js/songs-meiji.js?v=28c93617",
-    "./js/songs.js": "./js/songs.js?v=981316a9",
+    "./js/songs-world.js": "./js/songs-world.js?v=f59e6718",
+    "./js/songs.js": "./js/songs.js?v=b5b4fa7a",
     "./js/techniques.js": "./js/techniques.js?v=3523b293",
     "./js/tooltip.js": "./js/tooltip.js?v=05127679",
     "./js/tuner.js": "./js/tuner.js?v=ed7b2744",
-    "./js/tunings.js": "./js/tunings.js?v=dce082bb",
+    "./js/tunings.js": "./js/tunings.js?v=7384431c",
     "./js/views/gauge.js": "./js/views/gauge.js?v=d42f7e16",
     "./js/views/koto.js": "./js/views/koto.js?v=23c99450",
     "./js/views/svg.js": "./js/views/svg.js?v=217d234a",
@@ -417,6 +427,6 @@ rq         quarter rest            q.  dotted       e3  triplet eighth
   }
 }
   </script>
-  <script type="module" src="js/app.js?v=4ffae918"></script>
+  <script type="module" src="js/app.js?v=213fcfd0"></script>
 </body>
 </html>

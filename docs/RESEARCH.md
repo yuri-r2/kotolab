@@ -105,9 +105,7 @@ Toto's *Africa* and *Stairway to Heaven*
 and J-pop and Vocaloid hits such as *Mesmerizer*, *Shōjo Rei*, YOASOBI's
 *Gunjō* and *Bling-Bang-Bang-Born*.
 
-**What KotoLab includes.** Songs marked ★ *Koto favourite* in the library:
-Sakura Sakura, Rokudan (opening), Kurokami, Echigo-jishi, Usagi and Hato.
-Added in this round, all public domain:
+**Japanese teaching and folk repertoire.**
 
 | Song | Date | Source of the notes | Check |
 | --- | --- | --- | --- |
@@ -136,6 +134,51 @@ because those melodies need the fewest presses there).
 * *Edo Komoriuta*, *Hamabe no Uta*, *Hamachidori*, *Takeda no Komoriuta*,
   *Chidori no Kyoku* and *Midare*, until a second independent source
   confirms the melody.
+
+## Chinese, Vietnamese and Korean repertoire
+
+The new scores follow individual source versions. They carry the melody only,
+at practice tempos. The default layouts play the melody on open strings,
+including the closing figures. Transpositions apply to entire melodies so
+their intervals stay intact.
+
+| Tune | Melody source | Arrangement |
+| --- | --- | --- |
+| Mòlìhuā (Jasmine Flower) | [John Barrow, *Travels in China* (1804), p. 316](https://www.gutenberg.org/cache/epub/28729/images/i_mooleewha.png). [Harvard's *Sounding China*](https://soundingchina.fas.harvard.edu/01.html) documents the related early London publication. | Barrow's early version in cut time, transposed from G to D. The final half-bar rest gives the cadence room to ring. |
+| Chinese Popular Air No. 1 | [*Travels in China*, p. 318, No. I](https://www.gutenberg.org/cache/epub/28729/images/ipopair1.png). Barrow credits the airs to a transcriber in Canton. | Full melody down a fifth, including the printed repeated sixteenth-note figures. |
+| Chinese Popular Air No. 2 | [*Travels in China*, p. 318, No. II](https://www.gutenberg.org/files/28729/28729-h/images/ipopair2.png). | Full melody down a fifth. The written pitches beneath the trill are retained and the description explains how to play the ornament. |
+| Qua Cầu Gió Bay | [*Hướng Dẫn Sinh Hoạt II*, p. 776](https://cttdvnfl.org/wp-content/uploads/2025/12/Sach_HDSH2_eBook.pdf#page=411). [UNESCO's entry](https://ich.unesco.org/en/RL/quan-ho-bac-ninh-folk-songs-00183) describes the quan họ singing tradition. | One verse with the pickup and measured turns. The brief grace note and pickup into the next verse are left out. |
+| Lý Ngựa Ô (Nam Bộ) | [*Hướng Dẫn Sinh Hoạt II*, p. 777](https://cttdvnfl.org/wp-content/uploads/2025/12/Sach_HDSH2_eBook.pdf#page=412). [Hồ Ngọc Khải and Nguyễn Văn Hảo's teaching guide](https://c23phamkietsh.quangngai.edu.vn/wp-content/uploads/2024/08/KHBD_Am_Nhac_9_FULL_CTST_4598c-2.pdf) identifies the southern folk version. | Full melody with its cross-bar ties and the B♭ in both closing phrases. Chord symbols and accompaniment are omitted. |
+| Gu Arirang (1896) | [Homer B. Hulbert, “Korean Vocal Music,” *The Korean Repository*, reproduced by the National Archives of Korea](https://theme.archives.go.kr/next/pages/arirang/images/05_a.jpg). The [National Gugak Center encyclopedia](https://www.gugak.go.kr/ency/topic/view/836) identifies the early version. | Hulbert's version in sixteen three-beat bars, including the refrain and verse. |
+
+The printed scores were checked for phrases, note values and cadences. The
+Chinese air transcriptions were also compared with the MIDI companions to
+[Project Gutenberg's edition](https://www.gutenberg.org/cache/epub/28729/pg28729-images.html).
+The Vietnamese entries use the orally transmitted tune and omit the book's
+accompaniment and lyrics.
+
+### Tunings for these melodies
+
+- **Chinese repertoire.** The guzheng-inspired preset maps D E F♯ A B onto
+  the 13-string koto, retaining its high first string. The five-note shape is
+  documented in [Fang et al., *Acoustics of the Guzheng*](https://bioresources.cnr.ncsu.edu/resources/acoustics-of-the-guzheng-chinese-plucked-zither/).
+- **Vietnamese repertoire.** The Nam Bộ preset draws on the C D F G B♭
+  tuning reported by Trần Văn Khê for tracks 1, 2 and 6 of
+  [*Viet Nam: Tradition of the South*](https://folkways-media.si.edu/docs/folkways/artwork/UNES08049.pdf#page=3).
+  The koto layout adds A4 for *Lý Ngựa Ô*. Standard gaku-jōshi already supplies
+  the open pitches for *Qua Cầu Gió Bay*.
+- **Korean repertoire.** The gayageum-inspired preset uses the G A C D E
+  collection documented for sanjo gayageum in
+  [*A Study on Notation and Tuning Method of 12-Strings Gayageum*](https://www.dbpia.co.kr/journal/detail?nodeId=T13388033).
+  The pitches are reordered for a usable range on the koto.
+- **Modern tunings.** The C major / A minor layout gives a continuous
+  diatonic run on strings 二–巾. G minor blues puts all six blues notes in
+  the middle octave. The chromatic preset puts the seven pitches D4–A♭4
+  on open strings around the middle register.
+
+These presets are equal-tempered starting points for a 13-string koto.
+Regional intonation, ornaments and string order vary with instrument and
+playing tradition.
 
 ## Bare strings and string tension
 
@@ -166,7 +209,6 @@ candidates for re-tying.
 
 * The model is a heuristic. It does not know a particular school's fingering
   traditions, and kuchi-shōga is only shown when a score includes it.
-* Only part of *Rokudan* and *Kōjō no Tsuki* are included, as excerpts the
-  author could verify.
+* *Rokudan* and *Kōjō no Tsuki* are included as excerpts.
 * Koto samples come from a General MIDI soundfont; the built-in synth is an
   approximation of a koto, not a recording.

@@ -1,7 +1,6 @@
 // Koto tunings (調子, chōshi) and string metadata.
 //
-// Pitches are MIDI note numbers for the 壱越 (ichikotsu, D) base, the most
-// common reference: string 1 = D4. Strings are numbered from the side of the
+// Preset pitches are MIDI note numbers with string 1 set to D4 (壱越, ichikotsu). Strings are numbered from the side of the
 // instrument farthest from the player (一) to the nearest (巾).
 //
 // Sources: KORG WT-30 koto tuning chart; 美緒野会 "調弦基礎" tuning table
@@ -15,7 +14,7 @@ export const STRING_NAMES = ['一', '二', '三', '四', '五', '六', '七', '�
 export const STRING_NAMES_YAMADA = ['壱', '弐', '参', '四', '五', '六', '七', '八', '九', '十', '斗', '為', '巾'];
 export const STRING_READINGS = ['ichi', 'ni', 'san', 'shi', 'go', 'roku', 'shichi', 'hachi', 'ku', 'jū', 'to', 'i', 'kin'];
 
-// Hira-jōshi in D. Every other preset is derived from it by moving bridges.
+// Hira-jōshi in D.
 const HIRA = [62, 55, 57, 58, 62, 63, 67, 69, 70, 74, 75, 79, 81];
 
 function derive(changes) {
@@ -80,6 +79,42 @@ export const TUNINGS = [
     changes: { 4: +1, 6: +1, 9: +1, 11: +1 },
     character: 'Major pentatonic (yonanuki): G A B D E. The easiest tuning for Western major-key melodies.',
     usedFor: 'Akatonbo, Momiji, children’s songs, Western major-key tunes',
+  },
+  {
+    id: 'guzheng-pentatonic', name: 'Guzheng-inspired pentatonic', group: 'Chinese repertoire',
+    strings: [62, 54, 57, 59, 62, 64, 66, 69, 71, 74, 76, 78, 81],
+    character: 'D major pentatonic (D E F♯ A B), laid out across 13 koto strings.',
+    usedFor: 'Mòlìhuā and other major-pentatonic melodies',
+  },
+  {
+    id: 'dan-tranh-nam', name: 'Đàn tranh–inspired Nam Bộ', group: 'Vietnamese repertoire',
+    strings: [62, 55, 58, 60, 62, 65, 67, 69, 70, 72, 74, 77, 79],
+    character: 'Based on the southern đàn tranh’s C D F G B♭ pitch set, with A4 added for Lý Ngựa Ô. Pitches are equal-tempered.',
+    usedFor: 'Lý Ngựa Ô (Nam Bộ)',
+  },
+  {
+    id: 'gayageum-pentatonic', name: 'Gayageum-inspired pentatonic', group: 'Korean repertoire',
+    strings: [62, 57, 60, 62, 64, 67, 69, 72, 74, 76, 79, 81, 84],
+    character: 'G A C D E, drawn from sanjo gayageum pitch sets, with the koto’s string 一 available as a D drone.',
+    usedFor: 'Gu Arirang and melodies built on G A C D E',
+  },
+  {
+    id: 'diatonic', name: 'C major / A minor', group: 'Modern tunings',
+    strings: [62, 59, 60, 62, 64, 65, 67, 69, 71, 72, 74, 76, 77],
+    character: 'Consecutive diatonic pitches from B3 to F5 on strings 二–巾, with D4 on 一.',
+    usedFor: 'Diatonic melodies, pop and chord voicings',
+  },
+  {
+    id: 'blues', name: 'G minor blues', group: 'Modern tunings',
+    strings: [62, 55, 58, 60, 62, 65, 67, 70, 72, 73, 74, 77, 79],
+    character: 'G B♭ C D♭ D F in the middle register, with G and D available below it.',
+    usedFor: 'Blues riffs and improvisation',
+  },
+  {
+    id: 'chromatic-middle', name: 'Chromatic middle register', group: 'Modern tunings',
+    strings: [62, 55, 59, 63, 64, 65, 66, 67, 68, 70, 72, 75, 79],
+    character: 'Seven consecutive semitones from D4 (string 一) to A♭4, with bass and treble notes around them.',
+    usedFor: 'Chromatic runs and music with accidentals',
   },
 ];
 

@@ -1,7 +1,7 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
 import { parseMusicXML } from '../js/importers.js';
-import { SONGS, FAVOURITES } from '../js/songs.js';
+import { SONGS } from '../js/songs.js';
 import { parseScore, normalizeEvents, barBeats } from '../js/notation.js';
 import { fitBest } from '../js/engine.js';
 import { getTuning } from '../js/tunings.js';
@@ -41,8 +41,7 @@ test('MusicXML: rejects files that are not scores', () => {
   assert.throws(() => parseMusicXML('<html></html>'), /not a MusicXML/);
 });
 
-test('new songs and favourites are all in the library and arrange cleanly', () => {
-  for (const id of Object.keys(FAVOURITES)) assert.ok(SONGS.some((s) => s.id === id), id);
+test('Japanese children’s songs and arrangements are in the library and parse cleanly', () => {
   const added = SONGS.filter((s) => s.id.startsWith('doyo-') || s.id.startsWith('koto-doyo-') || s.id === 'fuki');
   assert.equal(added.length, 15);
   for (const s of added) {
