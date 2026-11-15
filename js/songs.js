@@ -219,6 +219,25 @@ E5s D#5s E5s B4s D5s C5s | A4e rs C4s E4s A4s | B4e rs E4s C5s B4s | A4q. |`,
 rh rq C4q | F4q. F4e F4q A4q | G4q. F4e G4q A4q | F4q. F4e A4q C5q | D5h. D5q |
 C5q. A4e A4q F4q | G4q. F4e G4q A4q | F4q. D4e D4q C4q | F4h. rq |`,
   },
+  {
+    id: 'coldplay-yellow', title: 'Yellow (koto accompaniment)', tradition: 'European',
+    composer: 'Coldplay', category: 'Pop accompaniment',
+    mode: 'strings', tuning: 'wide-diatonic', base: 1, tempo: 88, timeSig: [4, 4],
+    syllables: 'Chord degrees',
+    about: 'A 17-bar chord study in B major using open strings. Loop bars 1–8 for the verse harmony or 9–16 for the chorus harmony, and let the bass notes ring under the arpeggios. Sing or play the lead over the koto part.',
+    source: 'https://www.musicnotes.com/sheetmusic/coldplay/yellow/MN0043564',
+    sourceLabel: 'Licensed sheet music',
+    score: `
+s2q~I s5e s8e s10q s8e s5e | s2+s5q~I s8e s10e s8q s5e s2e |
+s5q~V s7e s9e s12q s9e s7e | s5+s9q~V s7e s9e s12q s9e s7e |
+s4q~IV s6e s8e s11q s8e s6e | s4+s8q~IV s6e s8e s11q s8e s6e |
+s2q~I s5e s8e s10q s8e s5e | s2+s5q~I s8e s10e s8q s5q |
+s4+s8q~IV s6e s8e s11q s8e s6e | s4q~IV s6e s8e s11e s8e s6q |
+s6+s8q~vi s10e s13e s10q s8e s6e | s5+s9q~V s7e s9e s12q s9e s7e |
+s4+s8q~IV s6e s8e s11q s8e s6e | s4q~IV s6e s8e s11e s8e s6q |
+s6+s8q~vi s10e s13e s10q s8e s6e | s5+s9q~V s7e s9e s12q s9e s7e |
+s2+s5+s8h~I s10q s8q |`,
+  },
 ];
 
 export const SONGS = [...BASE_SONGS, ...KOTO_SONGS, ...DOYO_SONGS, ...MEIJI_SONGS, ...WORLD_SONGS, ...REPERTOIRE_SONGS]

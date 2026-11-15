@@ -5,7 +5,7 @@ import { WORLD_SONGS } from '../js/songs-world.js';
 import { REPERTOIRE_SONGS } from '../js/songs-repertoire.js';
 import { SONG_LEVELS } from '../js/song-levels.js';
 import { songDifficulty } from '../js/difficulty.js';
-import { parseScore, normalizeEvents, barBeats } from '../js/notation.js';
+import { parseScore, normalizeEvents, barBeats, toMeasures } from '../js/notation.js';
 import { fitArrangement, fitBest, recommendTunings, resolvePitches } from '../js/engine.js';
 import { BASES, TUNINGS, getTuning, hiraPitches, checkTuningRealism, tuningOpen } from '../js/tunings.js';
 import { planTuningSteps } from '../js/guide.js';
@@ -28,6 +28,7 @@ test('search finds accented titles, original scripts, traditions and collections
     ['meiji kurokami', 'meiji-12'],
     ['vu dieu dong duong', 'tai-tu-dance'],
     ['eighth dan', 'hachidan-dan-8'],
+    ['coldplay yellow', 'coldplay-yellow'],
   ]) assert.ok(searchSongs(SONGS, query).some((s) => s.id === id), query);
   assert.deepEqual(searchSongs(SONGS, '     '), SONGS);
   assert.deepEqual(searchSongs(SONGS, 'grace vietnamese'), []);
@@ -130,5 +131,29 @@ test('historical repertoire follows the written bars and plays in its recommende
       assert.equal(arranged.stats.open, arranged.stats.notes, song.id);
       if (song.category.startsWith('Irish')) assert.equal(arranged.stats.levelNumber, 5, song.id);
     }
+  }
+});
+
+test('Yellow accompaniment keeps its harmony and plays entirely on open strings in B', () => {
+  const song = SONGS.find((s) => s.id === 'coldplay-yellow');
+  const open = tuningOpen(getTuning(song.tuning), song.base);
+  const { events, totalBeats } = parseScore(song.score);
+  const arranged = fitArrangement(resolvePitches(events, open), { open, tempo: song.tempo, keepStrings: true });
+  const measures = toMeasures(arranged.events, song.timeSig);
+  assert.equal(totalBeats, 68);
+  assert.equal(measures.length, 17);
+  assert.equal(arranged.stats.open, arranged.stats.notes);
+  assert.equal(arranged.stats.shifted, 0);
+  assert.equal(arranged.stats.omitted, 0);
+  assert.deepEqual(arranged.issues, []);
+  assert.deepEqual(SONG_LEVELS[song.id], songDifficulty(song));
+
+  const chordDegrees = ['I', 'I', 'V', 'V', 'IV', 'IV', 'I', 'I', 'IV', 'IV', 'vi', 'V', 'IV', 'IV', 'vi', 'V', 'I'];
+  const pitchClasses = { I: [11, 3, 6], V: [6, 10, 1], IV: [4, 8, 11], vi: [8, 11, 3] };
+  for (const [i, { events }] of measures.entries()) {
+    const degree = chordDegrees[i];
+    assert.equal(events[0].t, i * 4);
+    assert.equal(events[0].shoga, degree);
+    assert.deepEqual(new Set(events.flatMap((e) => e.notes.map((n) => n.pitch % 12))), new Set(pitchClasses[degree]));
   }
 });

@@ -49,6 +49,10 @@ European and American repertoire: *Twinkle Twinkle*, *Ode to Joy*, *Amazing
 Grace*, *Greensleeves*, *Silent Night*, *Happy Birthday*, *Für Elise* (theme),
 *Auld Lang Syne / Hotaru no Hikari*.
 
+*Yellow* by Coldplay is available as a 17-bar koto accompaniment study.
+It uses original open-string patterns over the verse and chorus harmonies
+in B major. The entry links to the licensed sheet music for the full song.
+
 ## Score format
 
 ```

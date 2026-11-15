@@ -60,6 +60,11 @@ export const SONG_LEVELS = {
   "level": 1,
   "tuning": "dan-tranh-nam"
  },
+ "coldplay-yellow": {
+  "difficulty": 3.2,
+  "level": 2,
+  "tuning": "wide-diatonic"
+ },
  "koto-akatonbo": {
   "difficulty": 2.4,
   "level": 1,

@@ -237,7 +237,10 @@ function loadSong(song, { keepSettings = false } = {}) {
   const source = $('songSource');
   source.hidden = song.user || !song.source;
   if (source.hidden) source.removeAttribute('href');
-  else source.href = song.source;
+  else {
+    source.href = song.source;
+    source.textContent = song.sourceLabel || 'Melody source';
+  }
   $('syllableLabel').textContent = song.syllables || 'Syllables';
   $('keepWrap').hidden = song.mode !== 'strings';
   document.title = `${song.title} — KotoLab`;
