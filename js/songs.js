@@ -10,6 +10,7 @@ import { MEIJI_SONGS } from './songs-meiji.js';
 import { KOTO_SONGS } from './songs-koto.js';
 import { DOYO_SONGS } from './songs-doyo.js';
 import { WORLD_SONGS } from './songs-world.js';
+import { REPERTOIRE_SONGS } from './songs-repertoire.js';
 
 export const TRADITIONS = ['Japanese', 'Chinese', 'Vietnamese', 'Korean', 'European', 'American', 'My songs'];
 
@@ -220,7 +221,7 @@ C5q. A4e A4q F4q | G4q. F4e G4q A4q | F4q. D4e D4q C4q | F4h. rq |`,
   },
 ];
 
-export const SONGS = [...BASE_SONGS, ...KOTO_SONGS, ...DOYO_SONGS, ...MEIJI_SONGS, ...WORLD_SONGS]
+export const SONGS = [...BASE_SONGS, ...KOTO_SONGS, ...DOYO_SONGS, ...MEIJI_SONGS, ...WORLD_SONGS, ...REPERTOIRE_SONGS]
   .map((song) => ({ tradition: 'Japanese', ...song }));
 
 export function songTradition(song) {

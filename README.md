@@ -41,6 +41,8 @@ Children's and school songs (童謡・唱歌), all public domain, with first-ver
 
 Chinese repertoire includes the early *Mòlìhuā* (*Jasmine Flower*) and two historical popular airs printed in 1804. Vietnamese repertoire includes *Qua Cầu Gió Bay* and the southern *Lý Ngựa Ô*. Korean repertoire includes the 1896 *Gu Arirang*. The source is linked on each song. The new melodies play on open strings in their recommended 13-string tunings. See [repertoire and tuning notes](docs/RESEARCH.md#chinese-vietnamese-and-korean-repertoire) for sources and arrangement decisions.
 
+For harder practice, try the closing dan of *Rokudan* and *Hachidan* in hira-jōshi, or O’Neill’s settings of *The Bucks of Oranmore* and *Banish Misfortune*. The latter two use the wide-range B♭ diatonic preset. The library also includes a tài tử excerpt and a Chinese folk melody from Julien Tiersot’s 1905 collection. [Historical scores and arrangement notes](docs/RESEARCH.md#advanced-and-historical-repertoire)
+
 Meiji-era songs: 28 popular songs from *Japanese Popular Music* (Nagai & Kobatake, Osaka 1892), several originally accompanied by koto — including *Kurokami*, *Echigo-jishi*, *Oedo Nihonbashi*, *Kappore* and *Dodoitsu* — converted from David Huron's Humdrum encoding with `scripts/import-nippon.mjs`. The library has a search box and collapsible groups.
 
 European and American repertoire: *Twinkle Twinkle*, *Ode to Joy*, *Amazing

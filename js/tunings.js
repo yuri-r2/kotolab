@@ -105,6 +105,12 @@ export const TUNINGS = [
     usedFor: 'Diatonic melodies, pop and chord voicings',
   },
   {
+    id: 'wide-diatonic', name: 'B♭ major · wide range', group: 'Modern tunings',
+    strings: [62, 58, 60, 63, 65, 67, 69, 70, 72, 74, 75, 77, 79],
+    character: 'A diatonic layout from B♭3 to G5. D4 sits on string 一 so the other 12 strings can cover a wider range.',
+    usedFor: 'Fast diatonic melodies with more than an octave of range',
+  },
+  {
     id: 'blues', name: 'G minor blues', group: 'Modern tunings',
     strings: [62, 55, 58, 60, 62, 65, 67, 70, 72, 73, 74, 77, 79],
     character: 'G B♭ C D♭ D F in the middle register, with G and D available below it.',

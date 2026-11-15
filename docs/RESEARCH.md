@@ -180,6 +180,46 @@ These presets are equal-tempered starting points for a 13-string koto.
 Regional intonation, ornaments and string order vary with instrument and
 playing tradition.
 
+## Advanced and historical repertoire
+
+| Piece | Historical source | What the koto score covers |
+| --- | --- | --- |
+| *Rokudan no Shirabe*, sixth dan | [Seiji Furukawa, *Sōkyoku Bibō*, 1912, score p. 2](https://dl.ndl.go.jp/pid/857672/1/3). The [National Diet Library exhibition](https://jpsearch.go.jp/en/gallery/ndl-DZvPpbMP0nczD0/1) includes the separate Tokyo Music School edition and historical recordings. | The 26 bars of the final dan in hira-jōshi. Includes paired open strings, presses, after-presses and the two-string unison figure near the end. |
+| *Hachidan no Shirabe*, eighth dan | [Furukawa, *Sōkyoku Bibō*, 1912, score p. 2](https://dl.ndl.go.jp/pid/857673/1/3). | The 26 bars of the final dan in hira-jōshi. Includes dotted figures, paired plucks, bridge presses and a measured closing sweep. |
+| *The Bucks of Oranmore* | [Francis and James O’Neill, *Music of Ireland*, 1903, no. 1199, p. 226](https://s9.imslp.org/files/imglnks/usimg/a/a2/IMSLP495828-PMLP802880-ONeills_1850.pdf#page=237), from McFadden. | The pickup and all four printed strains. The measured eighth-note triplets stay in the line. The tiny grace note near the ending is left to the player. |
+| *Banish Misfortune* | [O’Neill, *Music of Ireland*, 1903, no. 776, p. 145](https://s9.imslp.org/files/imglnks/usimg/a/a2/IMSLP495828-PMLP802880-ONeills_1850.pdf#page=156), from Cronin. | The three strains in 6/8, with repeats and both endings of the middle strain written out. The measured sixteenth-note turns and O’Neill’s two-sharp key signature are preserved. |
+| *Vũ Điệu Đông Dương* | [Julien Tiersot, *Notes d’ethnographie musicale*, 1905, plate 8](https://urresearch.rochester.edu/fileDownloadForInstitutionalItem.action?itemFileId=160024&itemId=30223#page=3), transcribed from the tài tử ensemble leader at the 1900 Paris exhibition. | The first four phrases of the 1905 transcription. The principal durations are carried into a 2/4 practice grid, with unmeasured grace figures left out. Gaku-jōshi supplies every pitch. |
+| *Chinese Folk Melody* | [Tiersot, *Notes d’ethnographie musicale*, plate 9](https://urresearch.rochester.edu/fileDownloadForInstitutionalItem.action?itemFileId=160024&itemId=30223#page=4). | The complete tune printed under the French title *Mélodie populaire chinoise*. Its descending closing phrases fit nogi-jōshi. |
+
+Furukawa’s horizontal staff maps its lines and spaces to strings 一 through 巾.
+His legend distinguishes ordinary presses, after-presses and pressed unisons.
+The app keeps those gestures where its notation supports them. The practice
+editions regularize short cadence bars with rests or held notes and render the
+closing *ren* figures as measured plucks. The earlier Yamada-school *Rokudan*
+opening remains available under its original link.
+
+Both Irish settings are transposed down a major third for the koto. The new
+wide-range B♭ diatonic setup puts D4 on 一 and spans B♭3–G5 on the instrument.
+This fits the fast figures on open strings, leaving rhythmic grouping and
+right-hand accuracy as the main challenges. The printed scores were checked
+against the [O’Neill ABC for *Banish Misfortune*](https://abcnotation.com/tunePage?a=trillian.mit.edu%2F~jc%2Fmusic%2Fbook%2FONeills%2F_1850%2FX%2F0776_sf%2F0000)
+and the [encoded 1903 setting of *The Bucks of Oranmore*](https://tradtab.com/tunes/the-bucks-of-oranmore-2/).
+The [Ward Irish Music Archives cylinder catalog](https://archives.irishfest.com/dunn-family-collection/Music/Cylinders4.htm)
+also identifies Cronin’s recorded performance of *Banish Misfortune*.
+
+Tiersot’s [1905 volume](https://hdl.handle.net/1802/29900) is held by the Sibley
+Music Library. The [Vietnamese Institute of Musicology analysis](https://vienamnhac.vn/bai-viet/nhac-co/ban-ky-am-nhac-tai-tu-nam-1900-cua-julien-tiersot)
+identifies the dance’s Bắc modal character and discusses the limits of the
+collector’s original barring. The koto playback uses equal-tempered pitches.
+The score does not reconstruct Vietnamese intonation or ornaments.
+
+The Chidori score and Korean sanjo sources were reviewed as candidates.
+*Chidori*’s source layers the main line with a separate *kaede* part in
+the instrumental interlude. Sanjo presents a different problem of
+school-specific versions, rhythmic cycles and pitch inflection documented
+in [the Seoul National University study](https://s-space.snu.ac.kr/bitstream/10371/133038/1/000000008879.pdf).
+Both need further transcription work for a useful solo koto version.
+
 ## Bare strings and string tension
 
 On most kotos the strings have no pegs. Each one is knotted at the tail end
